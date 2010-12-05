@@ -3,21 +3,21 @@
 %endif
 
 Name:             openstack-swift
-Version:          1.0.2
-Release:          5%{?dist}
+Version:          1.1.0
+Release:          1%{?dist}
 Summary:          OpenStack Object Storage (swift)
 
 Group:            Development/Languages
 License:          ASL 2.0
 URL:              http://launchpad.net/swift
-Source0:          http://launchpad.net/swift/1.0/%{version}/+download/swift-%{version}.tar.gz
+Source0:          http://launchpad.net/swift/austin/2010.1/+download/swift-%{version}.tar.gz
 Source1:          %{name}-functions
 Source2:          %{name}-account.init
 Source3:          %{name}-auth.init
 Source4:          %{name}-container.init
 Source5:          %{name}-object.init
 Source6:          %{name}-proxy.init
-Source20:         %{name}-create-man-stubs.py
+Source20:         %{name}.tmpfs
 BuildRoot:        %{_tmppath}/swift-%{version}-%{release}-root-%(%{__id_u} -n)
 
 BuildArch:        noarch
@@ -28,8 +28,9 @@ BuildRequires:    python-setuptools
 Requires:         python-configobj
 Requires:         python-eventlet >= 0.9.8
 Requires:         python-greenlet >= 0.3.1
+Requires:         python-paste-deploy
 Requires:         python-simplejson
-Requires:         python-webob
+Requires:         python-webob >= 0.9.8
 Requires:         pyxattr
 
 Requires(post):   chkconfig
@@ -90,6 +91,7 @@ Summary:          A swift object server
 Group:            Applications/System
 
 Requires:         %{name} = %{version}-%{release}
+Requires:         rsync >= 3.0
 
 %description      object
 OpenStack Object Storage (swift) aggregates commodity servers to work together
@@ -113,7 +115,7 @@ This package contains the %{name} proxy server.
 Summary:          Documentation for %{name}
 Group:            Documentation
 
-BuildRequires:    python-sphinx
+BuildRequires:    python-sphinx >= 1.0
 # Required for generating docs
 BuildRequires:    python-eventlet
 BuildRequires:    python-simplejson
@@ -133,12 +135,12 @@ dos2unix LICENSE
 
 %build
 %{__python} setup.py build
+# Fails unless we create the build directory
+mkdir -p doc/build
 # Build docs
-pushd doc; make html; popd
+%{__python} setup.py build_sphinx
 # Fix hidden-file-or-dir warning 
 rm doc/build/html/.buildinfo
-# Build man stubs
-%{__python} %{SOURCE20} --mandir=./man
 
 %install
 rm -rf %{buildroot}
@@ -151,11 +153,6 @@ install -p -D -m 755 %{SOURCE3} %{buildroot}%{_initrddir}/%{name}-auth
 install -p -D -m 755 %{SOURCE4} %{buildroot}%{_initrddir}/%{name}-container
 install -p -D -m 755 %{SOURCE5} %{buildroot}%{_initrddir}/%{name}-object
 install -p -D -m 755 %{SOURCE6} %{buildroot}%{_initrddir}/%{name}-proxy
-# Install man stubs
-for name in $( ls ./man ); do
-    mkdir -p "%{buildroot}%{_mandir}/$name"
-    cp "./man/$name/"*.gz "%{buildroot}%{_mandir}/$name"
-done
 # Remove tests
 rm -fr %{buildroot}/%{python_sitelib}/test
 # Misc other
@@ -165,13 +162,10 @@ install -d -m 755 %{buildroot}%{_sysconfdir}/swift/auth-server
 install -d -m 755 %{buildroot}%{_sysconfdir}/swift/container-server
 install -d -m 755 %{buildroot}%{_sysconfdir}/swift/object-server
 install -d -m 755 %{buildroot}%{_sysconfdir}/swift/proxy-server
-# Install pid directory
-install -d -m 755 %{buildroot}%{_localstatedir}/run/swift
-install -d -m 755 %{buildroot}%{_localstatedir}/run/swift/account-server
-install -d -m 755 %{buildroot}%{_localstatedir}/run/swift/auth-server
-install -d -m 755 %{buildroot}%{_localstatedir}/run/swift/container-server
-install -d -m 755 %{buildroot}%{_localstatedir}/run/swift/object-server
-install -d -m 755 %{buildroot}%{_localstatedir}/run/swift/proxy-server
+
+# Swift run directories
+mkdir -p %{buildroot}%{_sysconfdir}/tmpfiles.d
+install -p -m 0644 %{SOURCE20} %{buildroot}%{_sysconfdir}/tmpfiles.d/openstack-swift.conf
 
 %clean
 rm -rf %{buildroot}
@@ -256,102 +250,78 @@ fi
 %files
 %defattr(-,root,root,-)
 %doc AUTHORS LICENSE README
+%config(noreplace) %{_sysconfdir}/tmpfiles.d/openstack-swift.conf
 %dir %{_datarootdir}/%{name}/functions
-%dir %attr(0755, swift, root) %{_localstatedir}/run/swift
 %dir %{_sysconfdir}/swift
 %dir %{python_sitelib}/swift
 %{_bindir}/st
 %{_bindir}/swift-account-audit
+%{_bindir}/swift-bench
 %{_bindir}/swift-drive-audit
 %{_bindir}/swift-get-nodes
 %{_bindir}/swift-init
+%{_bindir}/swift-log-stats-collector
+%{_bindir}/swift-log-uploader
 %{_bindir}/swift-ring-builder
 %{_bindir}/swift-stats-populate
 %{_bindir}/swift-stats-report
-%{_mandir}/man8/st.8.gz
-%{_mandir}/man8/swift-account-audit.8.gz
-%{_mandir}/man8/swift-drive-audit.8.gz
-%{_mandir}/man8/swift-get-nodes.8.gz
-%{_mandir}/man8/swift-init.8.gz
-%{_mandir}/man8/swift-ring-builder.8.gz
-%{_mandir}/man8/swift-stats-populate.8.gz
-%{_mandir}/man8/swift-stats-report.8.gz
 %{python_sitelib}/swift/*.py*
 %{python_sitelib}/swift/common
+%{python_sitelib}/swift/stats
 %{python_sitelib}/swift-%{version}-*.egg-info
 
 %files account
 %defattr(-,root,root,-)
 %doc etc/account-server.conf-sample
 %dir %{_initrddir}/%{name}-account
-%dir %attr(0755, swift, root) %{_localstatedir}/run/swift/account-server
 %dir %{_sysconfdir}/swift/account-server
 %{_bindir}/swift-account-auditor
 %{_bindir}/swift-account-reaper
 %{_bindir}/swift-account-replicator
 %{_bindir}/swift-account-server
-%{_mandir}/man8/swift-account-auditor.8.gz
-%{_mandir}/man8/swift-account-reaper.8.gz
-%{_mandir}/man8/swift-account-replicator.8.gz
-%{_mandir}/man8/swift-account-server.8.gz
+%{_bindir}/swift-account-stats-logger
 %{python_sitelib}/swift/account
 
 %files auth
 %defattr(-,root,root,-)
 %doc etc/auth-server.conf-sample
 %dir %{_initrddir}/%{name}-auth
-%dir %attr(0755, swift, root) %{_localstatedir}/run/swift/auth-server
 %dir %{_sysconfdir}/swift/auth-server
-%{_bindir}/swift-auth-create-account
+%{_bindir}/swift-auth-add-user
 %{_bindir}/swift-auth-recreate-accounts
 %{_bindir}/swift-auth-server
-%{_mandir}/man8/swift-auth-create-account.8.gz
-%{_mandir}/man8/swift-auth-recreate-accounts.8.gz
-%{_mandir}/man8/swift-auth-server.8.gz
+%{_bindir}/swift-auth-update-reseller-prefixes
 %{python_sitelib}/swift/auth
 
 %files container
 %defattr(-,root,root,-)
 %doc etc/container-server.conf-sample
 %dir %{_initrddir}/%{name}-container
-%dir %attr(0755, swift, root) %{_localstatedir}/run/swift/container-server
 %dir %{_sysconfdir}/swift/container-server
 %{_bindir}/swift-container-auditor
 %{_bindir}/swift-container-server
 %{_bindir}/swift-container-replicator
 %{_bindir}/swift-container-updater
-%{_mandir}/man8/swift-container-auditor.8.gz
-%{_mandir}/man8/swift-container-server.8.gz
-%{_mandir}/man8/swift-container-replicator.8.gz
-%{_mandir}/man8/swift-container-updater.8.gz
 %{python_sitelib}/swift/container
 
 %files object
 %defattr(-,root,root,-)
 %doc etc/account-server.conf-sample etc/rsyncd.conf-sample
 %dir %{_initrddir}/%{name}-object
-%dir %attr(0755, swift, root) %{_localstatedir}/run/swift/object-server
 %dir %{_sysconfdir}/swift/object-server
 %{_bindir}/swift-object-auditor
 %{_bindir}/swift-object-info
 %{_bindir}/swift-object-replicator
 %{_bindir}/swift-object-server
 %{_bindir}/swift-object-updater
-%{_mandir}/man8/swift-object-auditor.8.gz
-%{_mandir}/man8/swift-object-info.8.gz
-%{_mandir}/man8/swift-object-replicator.8.gz
-%{_mandir}/man8/swift-object-server.8.gz
-%{_mandir}/man8/swift-object-updater.8.gz
 %{python_sitelib}/swift/obj
 
 %files proxy
 %defattr(-,root,root,-)
 %doc etc/proxy-server.conf-sample
 %dir %{_initrddir}/%{name}-proxy
-%dir %attr(0755, swift, root) %{_localstatedir}/run/swift/proxy-server
 %dir %{_sysconfdir}/swift/proxy-server
 %{_bindir}/swift-proxy-server
-%{_mandir}/man8/swift-proxy-server.8.gz
 %{python_sitelib}/swift/proxy
 
 %files doc
@@ -359,6 +329,9 @@ fi
 %doc LICENSE doc/build/html
 
 %changelog
+* Sun Dec 05 2010 Silas Sewell <silas@sewell.ch> - 1.1.0-1
+- Update to 1.1.0
+
 * Sun Aug 08 2010 Silas Sewell <silas@sewell.ch> - 1.0.2-5
 - Update for new Python macro guidelines
 - Use dos2unix instead of sed
