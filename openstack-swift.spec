@@ -4,7 +4,7 @@
 
 Name:             openstack-swift
 Version:          1.1.0
-Release:          1%{?dist}
+Release:          2%{?dist}
 Summary:          OpenStack Object Storage (swift)
 
 Group:            Development/Languages
@@ -329,6 +329,9 @@ fi
 %doc LICENSE doc/build/html
 
 %changelog
+* Tue Feb 08 2011 Fedora Release Engineering <rel-eng@lists.fedoraproject.org> - 1.1.0-2
+- Rebuilt for https://fedoraproject.org/wiki/Fedora_15_Mass_Rebuild
+
 * Sun Dec 05 2010 Silas Sewell <silas@sewell.ch> - 1.1.0-1
 - Update to 1.1.0
 
