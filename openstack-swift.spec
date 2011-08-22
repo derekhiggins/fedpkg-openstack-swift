@@ -3,14 +3,14 @@
 %endif
 
 Name:             openstack-swift
-Version:          1.1.0
-Release:          2%{?dist}
+Version:          1.4.0
+Release:          1%{?dist}
 Summary:          OpenStack Object Storage (swift)
 
 Group:            Development/Languages
 License:          ASL 2.0
 URL:              http://launchpad.net/swift
-Source0:          http://launchpad.net/swift/austin/2010.1/+download/swift-%{version}.tar.gz
+Source0:          http://launchpad.net/swift/diablo/1.4.0/+download/swift-%{version}.tar.gz
 Source1:          %{name}-functions
 Source2:          %{name}-account.init
 Source3:          %{name}-auth.init
@@ -24,6 +24,7 @@ BuildArch:        noarch
 BuildRequires:    dos2unix
 BuildRequires:    python-devel
 BuildRequires:    python-setuptools
+BuildRequires:    python-netifaces
 
 Requires:         python-configobj
 Requires:         python-eventlet >= 0.9.8
@@ -265,6 +266,8 @@ fi
 %{_bindir}/swift-ring-builder
 %{_bindir}/swift-stats-populate
 %{_bindir}/swift-stats-report
+%{_bindir}/swift-dispersion-populate
+%{_bindir}/swift-dispersion-report
 %{python_sitelib}/swift/*.py*
 %{python_sitelib}/swift/common
 %{python_sitelib}/swift/stats
@@ -284,14 +287,10 @@ fi
 
 %files auth
 %defattr(-,root,root,-)
-%doc etc/auth-server.conf-sample
 %dir %{_initrddir}/%{name}-auth
 %dir %{_sysconfdir}/swift/auth-server
-%{_bindir}/swift-auth-add-user
-%{_bindir}/swift-auth-recreate-accounts
-%{_bindir}/swift-auth-server
-%{_bindir}/swift-auth-update-reseller-prefixes
-%{python_sitelib}/swift/auth
+%{_bindir}/swauth-*
+#%{python_sitelib}/swift/auth
 
 %files container
 %defattr(-,root,root,-)
@@ -302,6 +301,7 @@ fi
 %{_bindir}/swift-container-server
 %{_bindir}/swift-container-replicator
 %{_bindir}/swift-container-updater
+%{_bindir}/swift-container-stats-logger
 %{python_sitelib}/swift/container
 
 %files object
@@ -329,6 +329,12 @@ fi
 %doc LICENSE doc/build/html
 
 %changelog
+* Sat Jun 04 2011 David Nalley <david@gnsa.us> - 1.4.0-1
+- Update to 1.4.0
+
+* Fri May 20 2011 David Nalley <david@gnsa.us> - 1.3.0-1
+- Update to 1.3.0 
+
 * Tue Feb 08 2011 Fedora Release Engineering <rel-eng@lists.fedoraproject.org> - 1.1.0-2
 - Rebuilt for https://fedoraproject.org/wiki/Fedora_15_Mass_Rebuild
 
