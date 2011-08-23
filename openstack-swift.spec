@@ -4,7 +4,7 @@
 
 Name:             openstack-swift
 Version:          1.4.0
-Release:          1%{?dist}
+Release:          2%{?dist}
 Summary:          OpenStack Object Storage (swift)
 
 Group:            Development/Languages
@@ -172,9 +172,9 @@ install -p -m 0644 %{SOURCE20} %{buildroot}%{_sysconfdir}/tmpfiles.d/openstack-s
 rm -rf %{buildroot}
 
 %pre
-getent group swift >/dev/null || groupadd -r swift
+getent group swift >/dev/null || groupadd -r swift -g 160
 getent passwd swift >/dev/null || \
-useradd -r -g swift -d %{_sharedstatedir}/swift -s /sbin/nologin \
+useradd -r -g swift -u 160 -d %{_sharedstatedir}/swift -s /sbin/nologin \
 -c "OpenStack Swift Daemons" swift
 exit 0
 
@@ -329,6 +329,9 @@ fi
 %doc LICENSE doc/build/html
 
 %changelog
+* Tue Aug 23 2011 David Nalley <david@gnsa.us> - 1.4.0-2
+- adding uid:gid for bz 732693
+
 * Sat Jun 04 2011 David Nalley <david@gnsa.us> - 1.4.0-1
 - Update to 1.4.0
 
