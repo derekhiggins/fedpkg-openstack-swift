@@ -3,17 +3,16 @@
 %endif
 
 Name:             openstack-swift
-Version:          1.4.0
-Release:          2%{?dist}
+Version:          1.4.3
+Release:          1%{?dist}
 Summary:          OpenStack Object Storage (swift)
 
 Group:            Development/Languages
 License:          ASL 2.0
 URL:              http://launchpad.net/swift
-Source0:          http://launchpad.net/swift/diablo/1.4.0/+download/swift-%{version}.tar.gz
+Source0:          http://launchpad.net/swift/diablo/%{version}/+download/swift-%{version}.tar.gz
 Source1:          %{name}-functions
 Source2:          %{name}-account.init
-Source3:          %{name}-auth.init
 Source4:          %{name}-container.init
 Source5:          %{name}-object.init
 Source6:          %{name}-proxy.init
@@ -25,7 +24,7 @@ BuildRequires:    dos2unix
 BuildRequires:    python-devel
 BuildRequires:    python-setuptools
 BuildRequires:    python-netifaces
-
+BuildRequires:    python-paste-deploy
 Requires:         python-configobj
 Requires:         python-eventlet >= 0.9.8
 Requires:         python-greenlet >= 0.3.1
@@ -33,11 +32,13 @@ Requires:         python-paste-deploy
 Requires:         python-simplejson
 Requires:         python-webob >= 0.9.8
 Requires:         pyxattr
+Requires:         python-netifaces
 
 Requires(post):   chkconfig
 Requires(postun): initscripts
 Requires(preun):  chkconfig
 Requires(pre):    shadow-utils
+Obsoletes:        openstack-swift-auth  <= 1.4.0
 
 %description
 OpenStack Object Storage (swift) aggregates commodity servers to work together
@@ -62,18 +63,6 @@ OpenStack Object Storage (swift) aggregates commodity servers to work together
 in clusters for reliable, redundant, and large-scale storage of static objects.
 
 This package contains the %{name} account server.
-
-%package          auth
-Summary:          A swift auth server
-Group:            Applications/System
-
-Requires:         %{name} = %{version}-%{release}
-
-%description      auth
-OpenStack Object Storage (swift) aggregates commodity servers to work together
-in clusters for reliable, redundant, and large-scale storage of static objects.
-
-This package contains the %{name} auth server.
 
 %package          container
 Summary:          A swift container server
@@ -115,8 +104,12 @@ This package contains the %{name} proxy server.
 %package doc
 Summary:          Documentation for %{name}
 Group:            Documentation
-
+%if 0%{?rhel} >= 6
+BuildRequires:    python-sphinx10 >= 1.0
+%endif
+%if 0%{?fedora} >= 14
 BuildRequires:    python-sphinx >= 1.0
+%endif
 # Required for generating docs
 BuildRequires:    python-eventlet
 BuildRequires:    python-simplejson
@@ -139,9 +132,16 @@ dos2unix LICENSE
 # Fails unless we create the build directory
 mkdir -p doc/build
 # Build docs
+%if 0%{?fedora} >= 14
 %{__python} setup.py build_sphinx
+%endif
+%if 0%{?rhel} >= 6
+export PYTHONPATH="$( pwd ):$PYTHONPATH"
+SPHINX_DEBUG=1 sphinx-1.0-build -b html doc/source doc/build/html
+SPHINX_DEBUG=1 sphinx-1.0-build -b man doc/source doc/build/man
+%endif
 # Fix hidden-file-or-dir warning 
-rm doc/build/html/.buildinfo
+#rm doc/build/html/.buildinfo
 
 %install
 rm -rf %{buildroot}
@@ -150,7 +150,6 @@ rm -rf %{buildroot}
 install -p -D -m 644 %{SOURCE1} %{buildroot}%{_datarootdir}/%{name}/functions
 # Init scripts
 install -p -D -m 755 %{SOURCE2} %{buildroot}%{_initrddir}/%{name}-account
-install -p -D -m 755 %{SOURCE3} %{buildroot}%{_initrddir}/%{name}-auth
 install -p -D -m 755 %{SOURCE4} %{buildroot}%{_initrddir}/%{name}-container
 install -p -D -m 755 %{SOURCE5} %{buildroot}%{_initrddir}/%{name}-object
 install -p -D -m 755 %{SOURCE6} %{buildroot}%{_initrddir}/%{name}-proxy
@@ -179,73 +178,59 @@ useradd -r -g swift -u 160 -d %{_sharedstatedir}/swift -s /sbin/nologin \
 exit 0
 
 %post account
-/sbin/chkconfig --add swift-account
+/sbin/chkconfig --add openstack-swift-account
 
 %preun account
 if [ $1 = 0 ] ; then
-    /sbin/service swift-account stop >/dev/null 2>&1
-    /sbin/chkconfig --del swift-account
+    /sbin/service openstack-swift-account stop >/dev/null 2>&1
+    /sbin/chkconfig --del openstack-swift-account
 fi
 
 %postun account
 if [ "$1" -ge "1" ] ; then
-    /sbin/service swift-account condrestart >/dev/null 2>&1 || :
-fi
-
-%post auth
-/sbin/chkconfig --add swift-auth
-
-%preun auth
-if [ $1 = 0 ] ; then
-    /sbin/service swift-auth stop >/dev/null 2>&1
-    /sbin/chkconfig --del swift-auth
-fi
-
-%postun auth
-if [ "$1" -ge "1" ] ; then
-    /sbin/service swift-auth condrestart >/dev/null 2>&1 || :
+    /sbin/service openstack-swift-account condrestart >/dev/null 2>&1 || :
 fi
 
 %post container
-/sbin/chkconfig --add swift-container
+/sbin/chkconfig --add openstack-swift-container
 
 %preun container
 if [ $1 = 0 ] ; then
-    /sbin/service swift-container stop >/dev/null 2>&1
-    /sbin/chkconfig --del swift-container
+    /sbin/service openstack-swift-container stop >/dev/null 2>&1
+    /sbin/chkconfig --del openstack-swift-container
 fi
 
-%postun container
+/%postun container
 if [ "$1" -ge "1" ] ; then
-    /sbin/service swift-container condrestart >/dev/null 2>&1 || :
+    /sbin/service openstack-swift-container condrestart >/dev/null 2>&1 || :
 fi
 
 %post object
-/sbin/chkconfig --add swift-object
+/sbin/chkconfig --add openstack-swift-object
 
 %preun object
 if [ $1 = 0 ] ; then
-    /sbin/service swift-object stop >/dev/null 2>&1
-    /sbin/chkconfig --del swift-object
+    /sbin/service openstack-swift-object stop >/dev/null 2>&1
+    /sbin/chkconfig --del openstack-swift-object
 fi
 
 %postun object
 if [ "$1" -ge "1" ] ; then
-    /sbin/service swift-object condrestart >/dev/null 2>&1 || :
+    /sbin/service openstack-swift-object condrestart >/dev/null 2>&1 || :
 fi
 
 %post proxy
-/sbin/chkconfig --add swift-proxy
+/sbin/chkconfig --add openstack-swift-proxy
 
 %preun proxy
 if [ $1 = 0 ] ; then
-    /sbin/service swift-proxy stop >/dev/null 2>&1
-    /sbin/chkconfig --del swift-proxy
+    /sbin/service openstack-swift-proxy stop >/dev/null 2>&1
+    /sbin/chkconfig --del openstack-swift-proxy
 fi
 
 %postun proxy
 if [ "$1" -ge "1" ] ; then
-    /sbin/service swift-proxy condrestart >/dev/null 2>&1 || :
+    /sbin/service openstack-swift-proxy condrestart >/dev/null 2>&1 || :
 fi
 
 %files
@@ -255,22 +240,20 @@ fi
 %dir %{_datarootdir}/%{name}/functions
 %dir %{_sysconfdir}/swift
 %dir %{python_sitelib}/swift
-%{_bindir}/st
+%{_bindir}/swift
 %{_bindir}/swift-account-audit
 %{_bindir}/swift-bench
 %{_bindir}/swift-drive-audit
 %{_bindir}/swift-get-nodes
 %{_bindir}/swift-init
-%{_bindir}/swift-log-stats-collector
-%{_bindir}/swift-log-uploader
 %{_bindir}/swift-ring-builder
 %{_bindir}/swift-stats-populate
 %{_bindir}/swift-stats-report
 %{_bindir}/swift-dispersion-populate
 %{_bindir}/swift-dispersion-report
+%{_bindir}/swift-recon*
 %{python_sitelib}/swift/*.py*
 %{python_sitelib}/swift/common
-%{python_sitelib}/swift/stats
 %{python_sitelib}/swift-%{version}-*.egg-info
 
 %files account
@@ -282,15 +265,8 @@ fi
 %{_bindir}/swift-account-reaper
 %{_bindir}/swift-account-replicator
 %{_bindir}/swift-account-server
-%{_bindir}/swift-account-stats-logger
 %{python_sitelib}/swift/account
 
-%files auth
-%defattr(-,root,root,-)
-%dir %{_initrddir}/%{name}-auth
-%dir %{_sysconfdir}/swift/auth-server
-%{_bindir}/swauth-*
-#%{python_sitelib}/swift/auth
 
 %files container
 %defattr(-,root,root,-)
@@ -301,7 +277,7 @@ fi
 %{_bindir}/swift-container-server
 %{_bindir}/swift-container-replicator
 %{_bindir}/swift-container-updater
-%{_bindir}/swift-container-stats-logger
+%{_bindir}/swift-container-sync
 %{python_sitelib}/swift/container
 
 %files object
@@ -329,8 +305,17 @@ fi
 %doc LICENSE doc/build/html
 
 %changelog
+* Sat Nov 05 2011 David Nalley <david@gnsa.us> - 1.4.3-1
+- Update to 1.4.3
+- fix init script add, registration, deletion BZ 685155
+- fixing BR to facilitate epel6 building
+
 * Tue Aug 23 2011 David Nalley <david@gnsa.us> - 1.4.0-2
 - adding uid:gid for bz 732693
+
+* Wed Jun 22 2011 David Nalley <david@gnsa.us> - 1.4.1-1
+- Update to 1.4.0
+- change the name of swift binary from st to swift
 
 * Sat Jun 04 2011 David Nalley <david@gnsa.us> - 1.4.0-1
 - Update to 1.4.0
