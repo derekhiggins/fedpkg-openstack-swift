@@ -4,7 +4,7 @@
 
 Name:             openstack-swift
 Version:          1.4.3
-Release:          1%{?dist}
+Release:          2%{?dist}
 Summary:          OpenStack Object Storage (swift)
 
 Group:            Development/Languages
@@ -32,6 +32,8 @@ Requires:         python-paste-deploy
 Requires:         python-simplejson
 Requires:         python-webob >= 0.9.8
 Requires:         pyxattr
+Requires:         python-setuptools
+Requires:         python-netifaces
 Requires:         python-netifaces
 
 Requires(post):   chkconfig
@@ -305,6 +307,9 @@ fi
 %doc LICENSE doc/build/html
 
 %changelog
+* Wed Nov 23 2011 David Nalley <david@gnsa.us> -1.4.3-2
+* fixed some missing requires
+
 * Sat Nov 05 2011 David Nalley <david@gnsa.us> - 1.4.3-1
 - Update to 1.4.3
 - fix init script add, registration, deletion BZ 685155
