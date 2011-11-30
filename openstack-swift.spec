@@ -3,39 +3,44 @@
 %endif
 
 Name:             openstack-swift
-Version:          1.0.2
-Release:          5%{?dist}
+Version:          1.4.3
+Release:          2%{?dist}
 Summary:          OpenStack Object Storage (swift)
 
 Group:            Development/Languages
 License:          ASL 2.0
 URL:              http://launchpad.net/swift
-Source0:          http://launchpad.net/swift/1.0/%{version}/+download/swift-%{version}.tar.gz
+Source0:          http://launchpad.net/swift/diablo/%{version}/+download/swift-%{version}.tar.gz
 Source1:          %{name}-functions
 Source2:          %{name}-account.init
-Source3:          %{name}-auth.init
 Source4:          %{name}-container.init
 Source5:          %{name}-object.init
 Source6:          %{name}-proxy.init
-Source20:         %{name}-create-man-stubs.py
+Source20:         %{name}.tmpfs
 BuildRoot:        %{_tmppath}/swift-%{version}-%{release}-root-%(%{__id_u} -n)
 
 BuildArch:        noarch
 BuildRequires:    dos2unix
 BuildRequires:    python-devel
 BuildRequires:    python-setuptools
-
+BuildRequires:    python-netifaces
+BuildRequires:    python-paste-deploy
 Requires:         python-configobj
 Requires:         python-eventlet >= 0.9.8
 Requires:         python-greenlet >= 0.3.1
+Requires:         python-paste-deploy
 Requires:         python-simplejson
-Requires:         python-webob
+Requires:         python-webob >= 0.9.8
 Requires:         pyxattr
+Requires:         python-setuptools
+Requires:         python-netifaces
+Requires:         python-netifaces
 
 Requires(post):   chkconfig
 Requires(postun): initscripts
 Requires(preun):  chkconfig
 Requires(pre):    shadow-utils
+Obsoletes:        openstack-swift-auth  <= 1.4.0
 
 %description
 OpenStack Object Storage (swift) aggregates commodity servers to work together
@@ -61,18 +66,6 @@ in clusters for reliable, redundant, and large-scale storage of static objects.
 
 This package contains the %{name} account server.
 
-%package          auth
-Summary:          A swift auth server
-Group:            Applications/System
-
-Requires:         %{name} = %{version}-%{release}
-
-%description      auth
-OpenStack Object Storage (swift) aggregates commodity servers to work together
-in clusters for reliable, redundant, and large-scale storage of static objects.
-
-This package contains the %{name} auth server.
-
 %package          container
 Summary:          A swift container server
 Group:            Applications/System
@@ -90,6 +83,7 @@ Summary:          A swift object server
 Group:            Applications/System
 
 Requires:         %{name} = %{version}-%{release}
+Requires:         rsync >= 3.0
 
 %description      object
 OpenStack Object Storage (swift) aggregates commodity servers to work together
@@ -112,8 +106,12 @@ This package contains the %{name} proxy server.
 %package doc
 Summary:          Documentation for %{name}
 Group:            Documentation
-
-BuildRequires:    python-sphinx
+%if 0%{?rhel} >= 6
+BuildRequires:    python-sphinx10 >= 1.0
+%endif
+%if 0%{?fedora} >= 14
+BuildRequires:    python-sphinx >= 1.0
+%endif
 # Required for generating docs
 BuildRequires:    python-eventlet
 BuildRequires:    python-simplejson
@@ -133,12 +131,19 @@ dos2unix LICENSE
 
 %build
 %{__python} setup.py build
+# Fails unless we create the build directory
+mkdir -p doc/build
 # Build docs
-pushd doc; make html; popd
+%if 0%{?fedora} >= 14
+%{__python} setup.py build_sphinx
+%endif
+%if 0%{?rhel} >= 6
+export PYTHONPATH="$( pwd ):$PYTHONPATH"
+SPHINX_DEBUG=1 sphinx-1.0-build -b html doc/source doc/build/html
+SPHINX_DEBUG=1 sphinx-1.0-build -b man doc/source doc/build/man
+%endif
 # Fix hidden-file-or-dir warning 
-rm doc/build/html/.buildinfo
-# Build man stubs
-%{__python} %{SOURCE20} --mandir=./man
+#rm doc/build/html/.buildinfo
 
 %install
 rm -rf %{buildroot}
@@ -147,15 +152,9 @@ rm -rf %{buildroot}
 install -p -D -m 644 %{SOURCE1} %{buildroot}%{_datarootdir}/%{name}/functions
 # Init scripts
 install -p -D -m 755 %{SOURCE2} %{buildroot}%{_initrddir}/%{name}-account
-install -p -D -m 755 %{SOURCE3} %{buildroot}%{_initrddir}/%{name}-auth
 install -p -D -m 755 %{SOURCE4} %{buildroot}%{_initrddir}/%{name}-container
 install -p -D -m 755 %{SOURCE5} %{buildroot}%{_initrddir}/%{name}-object
 install -p -D -m 755 %{SOURCE6} %{buildroot}%{_initrddir}/%{name}-proxy
-# Install man stubs
-for name in $( ls ./man ); do
-    mkdir -p "%{buildroot}%{_mandir}/$name"
-    cp "./man/$name/"*.gz "%{buildroot}%{_mandir}/$name"
-done
 # Remove tests
 rm -fr %{buildroot}/%{python_sitelib}/test
 # Misc other
@@ -165,117 +164,96 @@ install -d -m 755 %{buildroot}%{_sysconfdir}/swift/auth-server
 install -d -m 755 %{buildroot}%{_sysconfdir}/swift/container-server
 install -d -m 755 %{buildroot}%{_sysconfdir}/swift/object-server
 install -d -m 755 %{buildroot}%{_sysconfdir}/swift/proxy-server
-# Install pid directory
-install -d -m 755 %{buildroot}%{_localstatedir}/run/swift
-install -d -m 755 %{buildroot}%{_localstatedir}/run/swift/account-server
-install -d -m 755 %{buildroot}%{_localstatedir}/run/swift/auth-server
-install -d -m 755 %{buildroot}%{_localstatedir}/run/swift/container-server
-install -d -m 755 %{buildroot}%{_localstatedir}/run/swift/object-server
-install -d -m 755 %{buildroot}%{_localstatedir}/run/swift/proxy-server
+
+# Swift run directories
+mkdir -p %{buildroot}%{_sysconfdir}/tmpfiles.d
+install -p -m 0644 %{SOURCE20} %{buildroot}%{_sysconfdir}/tmpfiles.d/openstack-swift.conf
 
 %clean
 rm -rf %{buildroot}
 
 %pre
-getent group swift >/dev/null || groupadd -r swift
+getent group swift >/dev/null || groupadd -r swift -g 160
 getent passwd swift >/dev/null || \
-useradd -r -g swift -d %{_sharedstatedir}/swift -s /sbin/nologin \
+useradd -r -g swift -u 160 -d %{_sharedstatedir}/swift -s /sbin/nologin \
 -c "OpenStack Swift Daemons" swift
 exit 0
 
 %post account
-/sbin/chkconfig --add swift-account
+/sbin/chkconfig --add openstack-swift-account
 
 %preun account
 if [ $1 = 0 ] ; then
-    /sbin/service swift-account stop >/dev/null 2>&1
-    /sbin/chkconfig --del swift-account
+    /sbin/service openstack-swift-account stop >/dev/null 2>&1
+    /sbin/chkconfig --del openstack-swift-account
 fi
 
 %postun account
 if [ "$1" -ge "1" ] ; then
-    /sbin/service swift-account condrestart >/dev/null 2>&1 || :
-fi
-
-%post auth
-/sbin/chkconfig --add swift-auth
-
-%preun auth
-if [ $1 = 0 ] ; then
-    /sbin/service swift-auth stop >/dev/null 2>&1
-    /sbin/chkconfig --del swift-auth
-fi
-
-%postun auth
-if [ "$1" -ge "1" ] ; then
-    /sbin/service swift-auth condrestart >/dev/null 2>&1 || :
+    /sbin/service openstack-swift-account condrestart >/dev/null 2>&1 || :
 fi
 
 %post container
-/sbin/chkconfig --add swift-container
+/sbin/chkconfig --add openstack-swift-container
 
 %preun container
 if [ $1 = 0 ] ; then
-    /sbin/service swift-container stop >/dev/null 2>&1
-    /sbin/chkconfig --del swift-container
+    /sbin/service openstack-swift-container stop >/dev/null 2>&1
+    /sbin/chkconfig --del openstack-swift-container
 fi
 
-%postun container
+/%postun container
 if [ "$1" -ge "1" ] ; then
-    /sbin/service swift-container condrestart >/dev/null 2>&1 || :
+    /sbin/service openstack-swift-container condrestart >/dev/null 2>&1 || :
 fi
 
 %post object
-/sbin/chkconfig --add swift-object
+/sbin/chkconfig --add openstack-swift-object
 
 %preun object
 if [ $1 = 0 ] ; then
-    /sbin/service swift-object stop >/dev/null 2>&1
-    /sbin/chkconfig --del swift-object
+    /sbin/service openstack-swift-object stop >/dev/null 2>&1
+    /sbin/chkconfig --del openstack-swift-object
 fi
 
 %postun object
 if [ "$1" -ge "1" ] ; then
-    /sbin/service swift-object condrestart >/dev/null 2>&1 || :
+    /sbin/service openstack-swift-object condrestart >/dev/null 2>&1 || :
 fi
 
 %post proxy
-/sbin/chkconfig --add swift-proxy
+/sbin/chkconfig --add openstack-swift-proxy
 
 %preun proxy
 if [ $1 = 0 ] ; then
-    /sbin/service swift-proxy stop >/dev/null 2>&1
-    /sbin/chkconfig --del swift-proxy
+    /sbin/service openstack-swift-proxy stop >/dev/null 2>&1
+    /sbin/chkconfig --del openstack-swift-proxy
 fi
 
 %postun proxy
 if [ "$1" -ge "1" ] ; then
-    /sbin/service swift-proxy condrestart >/dev/null 2>&1 || :
+    /sbin/service openstack-swift-proxy condrestart >/dev/null 2>&1 || :
 fi
 
 %files
 %defattr(-,root,root,-)
 %doc AUTHORS LICENSE README
+%config(noreplace) %{_sysconfdir}/tmpfiles.d/openstack-swift.conf
 %dir %{_datarootdir}/%{name}/functions
-%dir %attr(0755, swift, root) %{_localstatedir}/run/swift
 %dir %{_sysconfdir}/swift
 %dir %{python_sitelib}/swift
-%{_bindir}/st
+%{_bindir}/swift
 %{_bindir}/swift-account-audit
+%{_bindir}/swift-bench
 %{_bindir}/swift-drive-audit
 %{_bindir}/swift-get-nodes
 %{_bindir}/swift-init
 %{_bindir}/swift-ring-builder
 %{_bindir}/swift-stats-populate
 %{_bindir}/swift-stats-report
-%{_mandir}/man8/st.8.gz
-%{_mandir}/man8/swift-account-audit.8.gz
-%{_mandir}/man8/swift-drive-audit.8.gz
-%{_mandir}/man8/swift-get-nodes.8.gz
-%{_mandir}/man8/swift-init.8.gz
-%{_mandir}/man8/swift-ring-builder.8.gz
-%{_mandir}/man8/swift-stats-populate.8.gz
-%{_mandir}/man8/swift-stats-report.8.gz
+%{_bindir}/swift-dispersion-populate
+%{_bindir}/swift-dispersion-report
+%{_bindir}/swift-recon*
 %{python_sitelib}/swift/*.py*
 %{python_sitelib}/swift/common
 %{python_sitelib}/swift-%{version}-*.egg-info
@@ -284,74 +262,44 @@ fi
 %defattr(-,root,root,-)
 %doc etc/account-server.conf-sample
 %dir %{_initrddir}/%{name}-account
-%dir %attr(0755, swift, root) %{_localstatedir}/run/swift/account-server
 %dir %{_sysconfdir}/swift/account-server
 %{_bindir}/swift-account-auditor
 %{_bindir}/swift-account-reaper
 %{_bindir}/swift-account-replicator
 %{_bindir}/swift-account-server
-%{_mandir}/man8/swift-account-auditor.8.gz
-%{_mandir}/man8/swift-account-reaper.8.gz
-%{_mandir}/man8/swift-account-replicator.8.gz
-%{_mandir}/man8/swift-account-server.8.gz
 %{python_sitelib}/swift/account
 
-%files auth
-%defattr(-,root,root,-)
-%doc etc/auth-server.conf-sample
-%dir %{_initrddir}/%{name}-auth
-%dir %attr(0755, swift, root) %{_localstatedir}/run/swift/auth-server
-%dir %{_sysconfdir}/swift/auth-server
-%{_bindir}/swift-auth-create-account
-%{_bindir}/swift-auth-recreate-accounts
-%{_bindir}/swift-auth-server
-%{_mandir}/man8/swift-auth-create-account.8.gz
-%{_mandir}/man8/swift-auth-recreate-accounts.8.gz
-%{_mandir}/man8/swift-auth-server.8.gz
-%{python_sitelib}/swift/auth
 
 %files container
 %defattr(-,root,root,-)
 %doc etc/container-server.conf-sample
 %dir %{_initrddir}/%{name}-container
-%dir %attr(0755, swift, root) %{_localstatedir}/run/swift/container-server
 %dir %{_sysconfdir}/swift/container-server
 %{_bindir}/swift-container-auditor
 %{_bindir}/swift-container-server
 %{_bindir}/swift-container-replicator
 %{_bindir}/swift-container-updater
-%{_mandir}/man8/swift-container-auditor.8.gz
-%{_mandir}/man8/swift-container-server.8.gz
-%{_mandir}/man8/swift-container-replicator.8.gz
-%{_mandir}/man8/swift-container-updater.8.gz
+%{_bindir}/swift-container-sync
 %{python_sitelib}/swift/container
 
 %files object
 %defattr(-,root,root,-)
 %doc etc/account-server.conf-sample etc/rsyncd.conf-sample
 %dir %{_initrddir}/%{name}-object
-%dir %attr(0755, swift, root) %{_localstatedir}/run/swift/object-server
 %dir %{_sysconfdir}/swift/object-server
 %{_bindir}/swift-object-auditor
 %{_bindir}/swift-object-info
 %{_bindir}/swift-object-replicator
 %{_bindir}/swift-object-server
 %{_bindir}/swift-object-updater
-%{_mandir}/man8/swift-object-auditor.8.gz
-%{_mandir}/man8/swift-object-info.8.gz
-%{_mandir}/man8/swift-object-replicator.8.gz
-%{_mandir}/man8/swift-object-server.8.gz
-%{_mandir}/man8/swift-object-updater.8.gz
 %{python_sitelib}/swift/obj
 
 %files proxy
 %defattr(-,root,root,-)
 %doc etc/proxy-server.conf-sample
 %dir %{_initrddir}/%{name}-proxy
-%dir %attr(0755, swift, root) %{_localstatedir}/run/swift/proxy-server
 %dir %{_sysconfdir}/swift/proxy-server
 %{_bindir}/swift-proxy-server
-%{_mandir}/man8/swift-proxy-server.8.gz
 %{python_sitelib}/swift/proxy
 
 %files doc
@@ -359,6 +307,33 @@ fi
 %doc LICENSE doc/build/html
 
 %changelog
+* Wed Nov 23 2011 David Nalley <david@gnsa.us> -1.4.3-2
+* fixed some missing requires
+
+* Sat Nov 05 2011 David Nalley <david@gnsa.us> - 1.4.3-1
+- Update to 1.4.3
+- fix init script add, registration, deletion BZ 685155
+- fixing BR to facilitate epel6 building
+
+* Tue Aug 23 2011 David Nalley <david@gnsa.us> - 1.4.0-2
+- adding uid:gid for bz 732693
+
+* Wed Jun 22 2011 David Nalley <david@gnsa.us> - 1.4.1-1
+- Update to 1.4.0
+- change the name of swift binary from st to swift
+
+* Sat Jun 04 2011 David Nalley <david@gnsa.us> - 1.4.0-1
+- Update to 1.4.0
+
+* Fri May 20 2011 David Nalley <david@gnsa.us> - 1.3.0-1
+- Update to 1.3.0 
+
+* Tue Feb 08 2011 Fedora Release Engineering <rel-eng@lists.fedoraproject.org> - 1.1.0-2
+- Rebuilt for https://fedoraproject.org/wiki/Fedora_15_Mass_Rebuild
+
+* Sun Dec 05 2010 Silas Sewell <silas@sewell.ch> - 1.1.0-1
+- Update to 1.1.0
+
 * Sun Aug 08 2010 Silas Sewell <silas@sewell.ch> - 1.0.2-5
 - Update for new Python macro guidelines
 - Use dos2unix instead of sed
