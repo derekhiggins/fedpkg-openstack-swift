@@ -17,6 +17,8 @@ Source4:          %{name}-container.init
 Source5:          %{name}-object.init
 Source6:          %{name}-proxy.init
 Source20:         %{name}.tmpfs
+Patch0:           openstack-swift-newdeps.patch
+
 BuildRoot:        %{_tmppath}/swift-%{version}-%{release}-root-%(%{__id_u} -n)
 
 BuildArch:        noarch
@@ -30,7 +32,7 @@ Requires:         python-eventlet >= 0.9.8
 Requires:         python-greenlet >= 0.3.1
 Requires:         python-paste-deploy
 Requires:         python-simplejson
-Requires:         python-webob >= 0.9.8
+Requires:         python-webob1.0
 Requires:         pyxattr
 Requires:         python-setuptools
 Requires:         python-netifaces
@@ -115,7 +117,7 @@ BuildRequires:    python-sphinx >= 1.0
 # Required for generating docs
 BuildRequires:    python-eventlet
 BuildRequires:    python-simplejson
-BuildRequires:    python-webob
+BuildRequires:    python-webob1.0
 BuildRequires:    pyxattr
 
 %description      doc
@@ -126,6 +128,7 @@ This package contains documentation files for %{name}.
 
 %prep
 %setup -q -n swift-%{version}
+%patch0 -p1 -b .newdeps
 # Fix wrong-file-end-of-line-encoding warning
 dos2unix LICENSE
 
@@ -308,7 +311,8 @@ fi
 %doc LICENSE doc/build/html
 
 %changelog
-* Fri Nov 25 2011 Alan Pevec <apevec@redhat.com> 1.4.4-1
+* Wed Jan 04 2012 Alan Pevec <apevec@redhat.com> 1.4.4-1
+- Use updated parallel install versions of epel packages (pbrady)
 - Update to 1.4.4
 
 * Wed Nov 23 2011 David Nalley <david@gnsa.us> -1.4.3-2
