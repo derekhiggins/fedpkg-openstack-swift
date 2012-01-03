@@ -3,14 +3,14 @@
 %endif
 
 Name:             openstack-swift
-Version:          1.4.3
-Release:          2%{?dist}
+Version:          1.4.4
+Release:          1%{?dist}
 Summary:          OpenStack Object Storage (swift)
 
 Group:            Development/Languages
 License:          ASL 2.0
 URL:              http://launchpad.net/swift
-Source0:          http://launchpad.net/swift/diablo/%{version}/+download/swift-%{version}.tar.gz
+Source0:          http://launchpad.net/swift/essex/%{version}/+download/swift-%{version}.tar.gz
 Source1:          %{name}-functions
 Source2:          %{name}-account.init
 Source4:          %{name}-container.init
@@ -254,6 +254,7 @@ fi
 %{_bindir}/swift-dispersion-populate
 %{_bindir}/swift-dispersion-report
 %{_bindir}/swift-recon*
+%{_bindir}/swift-object-expirer
 %{python_sitelib}/swift/*.py*
 %{python_sitelib}/swift/common
 %{python_sitelib}/swift-%{version}-*.egg-info
@@ -307,6 +308,9 @@ fi
 %doc LICENSE doc/build/html
 
 %changelog
+* Fri Nov 25 2011 Alan Pevec <apevec@redhat.com> 1.4.4-1
+- Update to 1.4.4
+
 * Wed Nov 23 2011 David Nalley <david@gnsa.us> -1.4.3-2
 * fixed some missing requires
 
