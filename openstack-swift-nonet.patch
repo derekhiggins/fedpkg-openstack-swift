@@ -1,0 +1,11 @@
+--- swift-1.4.4/doc/source/conf.py.orig	2012-01-04 22:40:43.190300958 -0500
++++ swift-1.4.4/doc/source/conf.py	2012-01-04 22:41:26.980492712 -0500
+@@ -40,7 +40,7 @@
+ 
+ # Add any Sphinx extension module names here, as strings. They can be extensions
+ # coming with Sphinx (named 'sphinx.ext.*') or your custom ones.
+-extensions = ['sphinx.ext.autodoc', 'sphinx.ext.intersphinx', 'sphinx.ext.todo', 'sphinx.ext.coverage', 'sphinx.ext.pngmath', 'sphinx.ext.ifconfig']
++extensions = ['sphinx.ext.autodoc', 'sphinx.ext.todo', 'sphinx.ext.coverage', 'sphinx.ext.pngmath', 'sphinx.ext.ifconfig']
+ todo_include_todos = True
+ 
+ # Add any paths that contain templates here, relative to this directory.

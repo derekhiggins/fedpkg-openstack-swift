@@ -18,6 +18,8 @@ Source5:          %{name}-object.init
 Source6:          %{name}-proxy.init
 Source20:         %{name}.tmpfs
 Patch0:           openstack-swift-newdeps.patch
+Patch1:           openstack-swift-docmod.patch
+Patch2:           openstack-swift-nonet.patch
 
 BuildRoot:        %{_tmppath}/swift-%{version}-%{release}-root-%(%{__id_u} -n)
 
@@ -129,6 +131,8 @@ This package contains documentation files for %{name}.
 %prep
 %setup -q -n swift-%{version}
 %patch0 -p1 -b .newdeps
+%patch1 -p1 -b .docmod
+%patch2 -p1 -b .nonet
 # Fix wrong-file-end-of-line-encoding warning
 dos2unix LICENSE
 
@@ -313,6 +317,8 @@ fi
 %changelog
 * Wed Jan 04 2012 Alan Pevec <apevec@redhat.com> 1.4.4-1
 - Use updated parallel install versions of epel packages (pbrady)
+- Ensure the docs aren't built with the system glance module (pbrady)
+- Ensure we don't access the net when building docs (pbrady)
 - Update to 1.4.4
 
 * Wed Nov 23 2011 David Nalley <david@gnsa.us> -1.4.3-2
