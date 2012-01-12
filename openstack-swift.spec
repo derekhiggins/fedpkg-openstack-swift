@@ -4,7 +4,7 @@
 
 Name:             openstack-swift
 Version:          1.4.4
-Release:          1%{?dist}
+Release:          2%{?dist}
 Summary:          OpenStack Object Storage (swift)
 
 Group:            Development/Languages
@@ -167,14 +167,15 @@ rm -fr %{buildroot}/%{python_sitelib}/test
 # Misc other
 install -d -m 755 %{buildroot}%{_sysconfdir}/swift
 install -d -m 755 %{buildroot}%{_sysconfdir}/swift/account-server
-install -d -m 755 %{buildroot}%{_sysconfdir}/swift/auth-server
 install -d -m 755 %{buildroot}%{_sysconfdir}/swift/container-server
 install -d -m 755 %{buildroot}%{_sysconfdir}/swift/object-server
 install -d -m 755 %{buildroot}%{_sysconfdir}/swift/proxy-server
-
-# Swift run directories
-mkdir -p %{buildroot}%{_sysconfdir}/tmpfiles.d
-install -p -m 0644 %{SOURCE20} %{buildroot}%{_sysconfdir}/tmpfiles.d/openstack-swift.conf
+# Install pid directory
+install -d -m 755 %{buildroot}%{_localstatedir}/run/swift
+install -d -m 755 %{buildroot}%{_localstatedir}/run/swift/account-server
+install -d -m 755 %{buildroot}%{_localstatedir}/run/swift/container-server
+install -d -m 755 %{buildroot}%{_localstatedir}/run/swift/object-server
+install -d -m 755 %{buildroot}%{_localstatedir}/run/swift/proxy-server
 
 %clean
 rm -rf %{buildroot}
@@ -245,8 +246,8 @@ fi
 %files
 %defattr(-,root,root,-)
 %doc AUTHORS LICENSE README
-%config(noreplace) %{_sysconfdir}/tmpfiles.d/openstack-swift.conf
 %dir %{_datarootdir}/%{name}/functions
+%dir %attr(0755, swift, swift) %{_localstatedir}/run/swift
 %dir %{_sysconfdir}/swift
 %dir %{python_sitelib}/swift
 %{_bindir}/swift
@@ -270,6 +271,7 @@ fi
 %defattr(-,root,root,-)
 %doc etc/account-server.conf-sample
 %dir %{_initrddir}/%{name}-account
+%dir %attr(0755, swift, swift) %{_localstatedir}/run/swift/account-server
 %dir %{_sysconfdir}/swift/account-server
 %{_bindir}/swift-account-auditor
 %{_bindir}/swift-account-reaper
@@ -282,6 +284,7 @@ fi
 %defattr(-,root,root,-)
 %doc etc/container-server.conf-sample
 %dir %{_initrddir}/%{name}-container
+%dir %attr(0755, swift, swift) %{_localstatedir}/run/swift/container-server
 %dir %{_sysconfdir}/swift/container-server
 %{_bindir}/swift-container-auditor
 %{_bindir}/swift-container-server
@@ -294,6 +297,7 @@ fi
 %defattr(-,root,root,-)
 %doc etc/account-server.conf-sample etc/rsyncd.conf-sample
 %dir %{_initrddir}/%{name}-object
+%dir %attr(0755, swift, swift) %{_localstatedir}/run/swift/object-server
 %dir %{_sysconfdir}/swift/object-server
 %{_bindir}/swift-object-auditor
 %{_bindir}/swift-object-info
@@ -306,6 +310,7 @@ fi
 %defattr(-,root,root,-)
 %doc etc/proxy-server.conf-sample
 %dir %{_initrddir}/%{name}-proxy
+%dir %attr(0755, swift, swift) %{_localstatedir}/run/swift/proxy-server
 %dir %{_sysconfdir}/swift/proxy-server
 %{_bindir}/swift-proxy-server
 %{python_sitelib}/swift/proxy
@@ -315,6 +320,9 @@ fi
 %doc LICENSE doc/build/html
 
 %changelog
+* Thu Jan 12 2012 Alan Pevec <apevec@redhat.com> 1.4.4-2
+- add back /var/run/swift for el6
+
 * Wed Jan 04 2012 Alan Pevec <apevec@redhat.com> 1.4.4-1
 - Use updated parallel install versions of epel packages (pbrady)
 - Ensure the docs aren't built with the system glance module (pbrady)

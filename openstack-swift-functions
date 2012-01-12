@@ -34,7 +34,7 @@ swift_start() {
   ulimit -n ${SWIFT_MAX_FILES-32768}
   echo -n "Starting swift-$long_name: "
   daemon --pidfile $pid_file \
-    "/usr/bin/swift-$long_name $conf_file &>/dev/null & echo \$! > $pid_file"
+    "/usr/bin/swift-$long_name $conf_file &>/var/log/swift-startup.log & echo \$! > $pid_file"
   retval=$?
   echo
   return $retval
