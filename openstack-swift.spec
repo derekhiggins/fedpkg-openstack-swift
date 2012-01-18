@@ -210,7 +210,7 @@ if [ $1 = 0 ] ; then
     /sbin/chkconfig --del openstack-swift-container
 fi
 
-/%postun container
+%postun container
 if [ "$1" -ge "1" ] ; then
     /sbin/service openstack-swift-container condrestart >/dev/null 2>&1 || :
 fi
