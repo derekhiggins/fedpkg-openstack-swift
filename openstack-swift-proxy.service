@@ -1,0 +1,11 @@
+[Unit]
+Description=OpenStack Object Storage (swift) - Proxy Server
+After=syslog.target network.target
+
+[Service]
+Type=simple
+User=swift
+ExecStart=/usr/bin/swift-proxy-server /etc/swift/proxy-server.conf
+
+[Install]
+WantedBy=multi-user.target

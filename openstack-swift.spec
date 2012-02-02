@@ -11,11 +11,10 @@ Group:            Development/Languages
 License:          ASL 2.0
 URL:              http://launchpad.net/swift
 Source0:          http://launchpad.net/swift/essex/%{version}/+download/swift-%{version}.tar.gz
-Source1:          %{name}-functions
-Source2:          %{name}-account.init
-Source4:          %{name}-container.init
-Source5:          %{name}-object.init
-Source6:          %{name}-proxy.init
+Source2:          %{name}-account.service
+Source4:          %{name}-container.service
+Source5:          %{name}-object.service
+Source6:          %{name}-proxy.service
 Source20:         %{name}.tmpfs
 BuildRoot:        %{_tmppath}/swift-%{version}-%{release}-root-%(%{__id_u} -n)
 
@@ -36,9 +35,10 @@ Requires:         python-setuptools
 Requires:         python-netifaces
 Requires:         python-netifaces
 
-Requires(post):   chkconfig
-Requires(postun): initscripts
-Requires(preun):  chkconfig
+Requires(post):   systemd-units
+Requires(preun):  systemd-units
+Requires(postun): systemd-units
+Requires(post):   systemd-sysv
 Requires(pre):    shadow-utils
 Obsoletes:        openstack-swift-auth  <= 1.4.0
 
@@ -148,13 +148,11 @@ SPHINX_DEBUG=1 sphinx-1.0-build -b man doc/source doc/build/man
 %install
 rm -rf %{buildroot}
 %{__python} setup.py install -O1 --skip-build --root %{buildroot}
-# Init helper functions
-install -p -D -m 644 %{SOURCE1} %{buildroot}%{_datarootdir}/%{name}/functions
-# Init scripts
-install -p -D -m 755 %{SOURCE2} %{buildroot}%{_initrddir}/%{name}-account
-install -p -D -m 755 %{SOURCE4} %{buildroot}%{_initrddir}/%{name}-container
-install -p -D -m 755 %{SOURCE5} %{buildroot}%{_initrddir}/%{name}-object
-install -p -D -m 755 %{SOURCE6} %{buildroot}%{_initrddir}/%{name}-proxy
+# systemd units
+install -p -D -m 755 %{SOURCE2} %{buildroot}%{_unitdir}/%{name}-account.service
+install -p -D -m 755 %{SOURCE4} %{buildroot}%{_unitdir}/%{name}-container.service
+install -p -D -m 755 %{SOURCE5} %{buildroot}%{_unitdir}/%{name}-object.service
+install -p -D -m 755 %{SOURCE6} %{buildroot}%{_unitdir}/%{name}-proxy.service
 # Remove tests
 rm -fr %{buildroot}/%{python_sitelib}/test
 # Misc other
@@ -180,66 +178,126 @@ useradd -r -g swift -u 160 -d %{_sharedstatedir}/swift -s /sbin/nologin \
 exit 0
 
 %post account
-/sbin/chkconfig --add openstack-swift-account
+if [ $1 -eq 1 ] ; then
+    # Initial installation
+    /bin/systemctl daemon-reload >/dev/null 2>&1 || :
+fi
 
 %preun account
-if [ $1 = 0 ] ; then
-    /sbin/service openstack-swift-account stop >/dev/null 2>&1
-    /sbin/chkconfig --del openstack-swift-account
+if [ $1 -eq 0 ] ; then
+    # Package removal, not upgrade
+    /bin/systemctl --no-reload disable openstack-swift-account.service > /dev/null 2>&1 || :
+    /bin/systemctl stop openstack-swift-account.service > /dev/null 2>&1 || :
 fi
 
 %postun account
-if [ "$1" -ge "1" ] ; then
-    /sbin/service openstack-swift-account condrestart >/dev/null 2>&1 || :
+/bin/systemctl daemon-reload >/dev/null 2>&1 || :
+if [ $1 -ge 1 ] ; then
+    # Package upgrade, not uninstall
+    /bin/systemctl try-restart openstack-swift-account.service >/dev/null 2>&1 || :
 fi
 
+%triggerun -- openstack-swift-account < 1.4.5-1
+# Save the current service runlevel info
+# User must manually run systemd-sysv-convert --apply openstack-swift-account
+# to migrate them to systemd targets
+/usr/bin/systemd-sysv-convert --save openstack-swift-account >/dev/null 2>&1 ||:
+# Run these because the SysV package being removed won't do them
+/sbin/chkconfig --del openstack-swift-account >/dev/null 2>&1 || :
+/bin/systemctl try-restart openstack-swift-account.service >/dev/null 2>&1 || :
+
 %post container
-/sbin/chkconfig --add openstack-swift-container
+if [ $1 -eq 1 ] ; then
+    # Initial installation
+    /bin/systemctl daemon-reload >/dev/null 2>&1 || :
+fi
 
 %preun container
-if [ $1 = 0 ] ; then
-    /sbin/service openstack-swift-container stop >/dev/null 2>&1
-    /sbin/chkconfig --del openstack-swift-container
+if [ $1 -eq 0 ] ; then
+    # Package removal, not upgrade
+    /bin/systemctl --no-reload disable openstack-swift-container.service > /dev/null 2>&1 || :
+    /bin/systemctl stop openstack-swift-container.service > /dev/null 2>&1 || :
 fi
 
 %postun container
-if [ "$1" -ge "1" ] ; then
-    /sbin/service openstack-swift-container condrestart >/dev/null 2>&1 || :
+/bin/systemctl daemon-reload >/dev/null 2>&1 || :
+if [ $1 -ge 1 ] ; then
+    # Package upgrade, not uninstall
+    /bin/systemctl try-restart openstack-swift-container.service >/dev/null 2>&1 || :
 fi
 
+%triggerun -- openstack-swift-container < 1.4.5-1
+# Save the current service runlevel info
+# User must manually run systemd-sysv-convert --apply openstack-swift-container
+# to migrate them to systemd targets
+/usr/bin/systemd-sysv-convert --save openstack-swift-container >/dev/null 2>&1 ||:
+# Run these because the SysV package being removed won't do them
+/sbin/chkconfig --del openstack-swift-container >/dev/null 2>&1 || :
+/bin/systemctl try-restart openstack-swift-container.service >/dev/null 2>&1 || :
+
 %post object
-/sbin/chkconfig --add openstack-swift-object
+if [ $1 -eq 1 ] ; then
+    # Initial installation
+    /bin/systemctl daemon-reload >/dev/null 2>&1 || :
+fi
 
 %preun object
-if [ $1 = 0 ] ; then
-    /sbin/service openstack-swift-object stop >/dev/null 2>&1
-    /sbin/chkconfig --del openstack-swift-object
+if [ $1 -eq 0 ] ; then
+    # Package removal, not upgrade
+    /bin/systemctl --no-reload disable openstack-swift-object.service > /dev/null 2>&1 || :
+    /bin/systemctl stop openstack-swift-object.service > /dev/null 2>&1 || :
 fi
 
 %postun object
-if [ "$1" -ge "1" ] ; then
-    /sbin/service openstack-swift-object condrestart >/dev/null 2>&1 || :
+/bin/systemctl daemon-reload >/dev/null 2>&1 || :
+if [ $1 -ge 1 ] ; then
+    # Package upgrade, not uninstall
+    /bin/systemctl try-restart openstack-swift-object.service >/dev/null 2>&1 || :
 fi
 
+%triggerun -- openstack-swift-object < 1.4.5-1
+# Save the current service runlevel info
+# User must manually run systemd-sysv-convert --apply openstack-swift-object
+# to migrate them to systemd targets
+/usr/bin/systemd-sysv-convert --save openstack-swift-object >/dev/null 2>&1 ||:
+# Run these because the SysV package being removed won't do them
+/sbin/chkconfig --del openstack-swift-object >/dev/null 2>&1 || :
+/bin/systemctl try-restart openstack-swift-object.service >/dev/null 2>&1 || :
+
+
 %post proxy
-/sbin/chkconfig --add openstack-swift-proxy
+if [ $1 -eq 1 ] ; then
+    # Initial installation
+    /bin/systemctl daemon-reload >/dev/null 2>&1 || :
+fi
 
 %preun proxy
-if [ $1 = 0 ] ; then
-    /sbin/service openstack-swift-proxy stop >/dev/null 2>&1
-    /sbin/chkconfig --del openstack-swift-proxy
+if [ $1 -eq 0 ] ; then
+    # Package removal, not upgrade
+    /bin/systemctl --no-reload disable openstack-swift-proxy.service > /dev/null 2>&1 || :
+    /bin/systemctl stop openstack-swift-proxy.service > /dev/null 2>&1 || :
 fi
 
 %postun proxy
-if [ "$1" -ge "1" ] ; then
-    /sbin/service openstack-swift-proxy condrestart >/dev/null 2>&1 || :
+/bin/systemctl daemon-reload >/dev/null 2>&1 || :
+if [ $1 -ge 1 ] ; then
+    # Package upgrade, not uninstall
+    /bin/systemctl try-restart openstack-swift-proxy.service >/dev/null 2>&1 || :
 fi
+
+%triggerun -- openstack-swift-proxy < 1.4.5-1
+# Save the current service runlevel info
+# User must manually run systemd-sysv-convert --apply openstack-swift-proxy
+# to migrate them to systemd targets
+/usr/bin/systemd-sysv-convert --save openstack-swift-proxy >/dev/null 2>&1 ||:
+# Run these because the SysV package being removed won't do them
+/sbin/chkconfig --del openstack-swift-proxy >/dev/null 2>&1 || :
+/bin/systemctl try-restart openstack-swift-proxy.service >/dev/null 2>&1 || :
 
 %files
 %defattr(-,root,root,-)
 %doc AUTHORS LICENSE README
 %config(noreplace) %{_sysconfdir}/tmpfiles.d/openstack-swift.conf
-%dir %{_datarootdir}/%{name}/functions
 %dir %{_sysconfdir}/swift
 %dir %{python_sitelib}/swift
 %{_bindir}/swift
@@ -264,7 +322,7 @@ fi
 %files account
 %defattr(-,root,root,-)
 %doc etc/account-server.conf-sample
-%dir %{_initrddir}/%{name}-account
+%dir %{_unitdir}/%{name}-account.service
 %dir %{_sysconfdir}/swift/account-server
 %{_bindir}/swift-account-auditor
 %{_bindir}/swift-account-reaper
@@ -276,7 +334,7 @@ fi
 %files container
 %defattr(-,root,root,-)
 %doc etc/container-server.conf-sample
-%dir %{_initrddir}/%{name}-container
+%dir %{_unitdir}/%{name}-container.service
 %dir %{_sysconfdir}/swift/container-server
 %{_bindir}/swift-container-auditor
 %{_bindir}/swift-container-server
@@ -288,7 +346,7 @@ fi
 %files object
 %defattr(-,root,root,-)
 %doc etc/account-server.conf-sample etc/rsyncd.conf-sample
-%dir %{_initrddir}/%{name}-object
+%dir %{_unitdir}/%{name}-object.service
 %dir %{_sysconfdir}/swift/object-server
 %{_bindir}/swift-object-auditor
 %{_bindir}/swift-object-info
@@ -300,7 +358,7 @@ fi
 %files proxy
 %defattr(-,root,root,-)
 %doc etc/proxy-server.conf-sample
-%dir %{_initrddir}/%{name}-proxy
+%dir %{_unitdir}/%{name}-proxy.service
 %dir %{_sysconfdir}/swift/proxy-server
 %{_bindir}/swift-proxy-server
 %{python_sitelib}/swift/proxy
