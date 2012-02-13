@@ -3,7 +3,7 @@
 %endif
 
 Name:             openstack-swift
-Version:          1.4.5
+Version:          1.4.6
 Release:          1%{?dist}
 Summary:          OpenStack Object Storage (swift)
 
@@ -315,6 +315,8 @@ fi
 %{_bindir}/swift-object-expirer
 %{_bindir}/swift-oldies
 %{_bindir}/swift-orphans
+%{_bindir}/swift-form-signature
+%{_bindir}/swift-temp-url
 %{python_sitelib}/swift/*.py*
 %{python_sitelib}/swift/common
 %{python_sitelib}/swift-%{version}-*.egg-info
@@ -368,6 +370,10 @@ fi
 %doc LICENSE doc/build/html
 
 %changelog
+* Mon Feb 13 2012 Alan Pevec <apevec@redhat.com> 1.4.6-1
+- Update to 1.4.6
+- Switch from SysV init scripts to systemd units rhbz#734594
+
 * Thu Jan 26 2012 Alan Pevec <apevec@redhat.com> 1.4.5-1
 - Update to 1.4.5
 
