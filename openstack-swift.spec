@@ -3,8 +3,8 @@
 %endif
 
 Name:             openstack-swift
-Version:          1.4.4
-Release:          2%{?dist}
+Version:          1.4.6
+Release:          1%{?dist}
 Summary:          OpenStack Object Storage (swift)
 
 Group:            Development/Languages
@@ -16,7 +16,6 @@ Source2:          %{name}-account.init
 Source4:          %{name}-container.init
 Source5:          %{name}-object.init
 Source6:          %{name}-proxy.init
-Source20:         %{name}.tmpfs
 Patch0:           openstack-swift-newdeps.patch
 Patch1:           openstack-swift-docmod.patch
 Patch2:           openstack-swift-nonet.patch
@@ -263,6 +262,10 @@ fi
 %{_bindir}/swift-dispersion-report
 %{_bindir}/swift-recon*
 %{_bindir}/swift-object-expirer
+%{_bindir}/swift-oldies
+%{_bindir}/swift-orphans
+%{_bindir}/swift-form-signature
+%{_bindir}/swift-temp-url
 %{python_sitelib}/swift/*.py*
 %{python_sitelib}/swift/common
 %{python_sitelib}/swift-%{version}-*.egg-info
@@ -320,6 +323,9 @@ fi
 %doc LICENSE doc/build/html
 
 %changelog
+* Mon Feb 13 2012 Alan Pevec <apevec@redhat.com> 1.4.6-1
+- Update to 1.4.6
+
 * Thu Jan 12 2012 Alan Pevec <apevec@redhat.com> 1.4.4-2
 - add back /var/run/swift for el6
 
