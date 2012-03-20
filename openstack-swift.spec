@@ -4,7 +4,7 @@
 
 Name:             openstack-swift
 Version:          1.4.7
-Release:          1%{?dist}
+Release:          2%{?dist}
 Summary:          OpenStack Object Storage (swift)
 
 Group:            Development/Languages
@@ -12,8 +12,11 @@ License:          ASL 2.0
 URL:              http://launchpad.net/swift
 Source0:          http://launchpad.net/swift/essex/%{version}/+download/swift-%{version}.tar.gz
 Source2:          %{name}-account.service
+Source21:         %{name}-account@.service
 Source4:          %{name}-container.service
+Source41:         %{name}-container@.service
 Source5:          %{name}-object.service
+Source51:         %{name}-object@.service
 Source6:          %{name}-proxy.service
 Source20:         %{name}.tmpfs
 BuildRoot:        %{_tmppath}/swift-%{version}-%{release}-root-%(%{__id_u} -n)
@@ -150,8 +153,11 @@ rm -rf %{buildroot}
 %{__python} setup.py install -O1 --skip-build --root %{buildroot}
 # systemd units
 install -p -D -m 755 %{SOURCE2} %{buildroot}%{_unitdir}/%{name}-account.service
+install -p -D -m 755 %{SOURCE21} %{buildroot}%{_unitdir}/%{name}-account@.service
 install -p -D -m 755 %{SOURCE4} %{buildroot}%{_unitdir}/%{name}-container.service
+install -p -D -m 755 %{SOURCE41} %{buildroot}%{_unitdir}/%{name}-container@.service
 install -p -D -m 755 %{SOURCE5} %{buildroot}%{_unitdir}/%{name}-object.service
+install -p -D -m 755 %{SOURCE51} %{buildroot}%{_unitdir}/%{name}-object@.service
 install -p -D -m 755 %{SOURCE6} %{buildroot}%{_unitdir}/%{name}-proxy.service
 # Remove tests
 rm -fr %{buildroot}/%{python_sitelib}/test
@@ -324,6 +330,7 @@ fi
 %defattr(-,root,root,-)
 %doc etc/account-server.conf-sample
 %dir %{_unitdir}/%{name}-account.service
+%dir %{_unitdir}/%{name}-account@.service
 %dir %{_sysconfdir}/swift/account-server
 %{_bindir}/swift-account-auditor
 %{_bindir}/swift-account-reaper
@@ -336,6 +343,7 @@ fi
 %defattr(-,root,root,-)
 %doc etc/container-server.conf-sample
 %dir %{_unitdir}/%{name}-container.service
+%dir %{_unitdir}/%{name}-container@.service
 %dir %{_sysconfdir}/swift/container-server
 %{_bindir}/swift-container-auditor
 %{_bindir}/swift-container-server
@@ -348,6 +356,7 @@ fi
 %defattr(-,root,root,-)
 %doc etc/object-server.conf-sample etc/rsyncd.conf-sample
 %dir %{_unitdir}/%{name}-object.service
+%dir %{_unitdir}/%{name}-object@.service
 %dir %{_sysconfdir}/swift/object-server
 %{_bindir}/swift-object-auditor
 %{_bindir}/swift-object-info
