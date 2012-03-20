@@ -296,6 +296,8 @@ fi
 %files
 %defattr(-,root,root,-)
 %doc AUTHORS LICENSE README
+%doc etc/dispersion.conf-sample etc/drive-audit.conf-sample etc/object-expirer.conf-sample
+%doc etc/swift.conf-sample
 %config(noreplace) %{_sysconfdir}/tmpfiles.d/openstack-swift.conf
 %dir %{_sysconfdir}/swift
 %dir %{python_sitelib}/swift
@@ -344,7 +346,7 @@ fi
 
 %files object
 %defattr(-,root,root,-)
-%doc etc/account-server.conf-sample etc/rsyncd.conf-sample
+%doc etc/object-server.conf-sample etc/rsyncd.conf-sample
 %dir %{_unitdir}/%{name}-object.service
 %dir %{_sysconfdir}/swift/object-server
 %{_bindir}/swift-object-auditor
