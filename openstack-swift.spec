@@ -3,8 +3,8 @@
 %endif
 
 Name:             openstack-swift
-Version:          1.4.7
-Release:          2%{?dist}
+Version:          1.4.8
+Release:          1%{?dist}
 Summary:          OpenStack Object Storage (swift)
 
 Group:            Development/Languages
@@ -378,6 +378,9 @@ fi
 %doc LICENSE doc/build/html
 
 %changelog
+* Thu Mar 22 2012 Alan Pevec <apevec@redhat.com> 1.4.8-1
+- Update to 1.4.8
+
 * Fri Mar 09 2012 Alan Pevec <apevec@redhat.com> 1.4.7-1
 - Update to 1.4.7
 
