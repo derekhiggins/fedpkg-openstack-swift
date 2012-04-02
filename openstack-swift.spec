@@ -3,7 +3,7 @@
 %endif
 
 Name:             openstack-swift
-Version:          1.4.6
+Version:          1.4.8
 Release:          1%{?dist}
 Summary:          OpenStack Object Storage (swift)
 
@@ -245,6 +245,8 @@ fi
 %files
 %defattr(-,root,root,-)
 %doc AUTHORS LICENSE README
+%doc etc/dispersion.conf-sample etc/drive-audit.conf-sample etc/object-expirer.conf-sample
+%doc etc/swift.conf-sample
 %dir %{_datarootdir}/%{name}/functions
 %dir %attr(0755, swift, swift) %{_localstatedir}/run/swift
 %dir %{_sysconfdir}/swift
@@ -256,8 +258,6 @@ fi
 %{_bindir}/swift-get-nodes
 %{_bindir}/swift-init
 %{_bindir}/swift-ring-builder
-%{_bindir}/swift-stats-populate
-%{_bindir}/swift-stats-report
 %{_bindir}/swift-dispersion-populate
 %{_bindir}/swift-dispersion-report
 %{_bindir}/swift-recon*
@@ -298,7 +298,7 @@ fi
 
 %files object
 %defattr(-,root,root,-)
-%doc etc/account-server.conf-sample etc/rsyncd.conf-sample
+%doc etc/object-server.conf-sample etc/rsyncd.conf-sample
 %dir %{_initrddir}/%{name}-object
 %dir %attr(0755, swift, swift) %{_localstatedir}/run/swift/object-server
 %dir %{_sysconfdir}/swift/object-server
@@ -323,6 +323,12 @@ fi
 %doc LICENSE doc/build/html
 
 %changelog
+* Thu Mar 22 2012 Alan Pevec <apevec@redhat.com> 1.4.8-1
+- Update to 1.4.8
+
+* Fri Mar 09 2012 Alan Pevec <apevec@redhat.com> 1.4.7-1
+- Update to 1.4.7
+
 * Mon Feb 13 2012 Alan Pevec <apevec@redhat.com> 1.4.6-1
 - Update to 1.4.6
 
