@@ -153,7 +153,6 @@ mkdir -p doc/build
 %if 0%{?rhel} >= 6
 export PYTHONPATH="$( pwd ):$PYTHONPATH"
 SPHINX_DEBUG=1 sphinx-1.0-build -b html doc/source doc/build/html
-SPHINX_DEBUG=1 sphinx-1.0-build -b man doc/source doc/build/man
 %endif
 # Fix hidden-file-or-dir warning
 #rm doc/build/html/.buildinfo
@@ -187,6 +186,15 @@ install -d -m 755 %{buildroot}%{_localstatedir}/run/swift/account-server
 install -d -m 755 %{buildroot}%{_localstatedir}/run/swift/container-server
 install -d -m 755 %{buildroot}%{_localstatedir}/run/swift/object-server
 install -d -m 755 %{buildroot}%{_localstatedir}/run/swift/proxy-server
+# man pages
+install -d -m 755 %{buildroot}%{_mandir}/man5
+for m in doc/manpages/*.5; do
+  install -p -m 0644 $m %{buildroot}%{_mandir}/man5
+done
+install -d -m 755 %{buildroot}%{_mandir}/man1
+for m in doc/manpages/*.1; do
+  install -p -m 0644 $m %{buildroot}%{_mandir}/man1
+done
 
 %clean
 rm -rf %{buildroot}
@@ -259,6 +267,14 @@ fi
 %doc AUTHORS LICENSE README
 %doc etc/dispersion.conf-sample etc/drive-audit.conf-sample etc/object-expirer.conf-sample
 %doc etc/swift.conf-sample
+%{_mandir}/man5/dispersion.conf.5*
+%{_mandir}/man1/swift-dispersion-populate.1*
+%{_mandir}/man1/swift-dispersion-report.1*
+%{_mandir}/man1/swift.1*
+%{_mandir}/man1/swift-get-nodes.1*
+%{_mandir}/man1/swift-init.1*
+%{_mandir}/man1/swift-recon.1*
+%{_mandir}/man1/swift-ring-builder.1*
 %dir %{_datarootdir}/%{name}/functions
 %dir %attr(0755, swift, swift) %{_localstatedir}/run/swift
 %dir %{_sysconfdir}/swift
@@ -288,6 +304,11 @@ fi
 %dir %{_initrddir}/%{name}-account
 %{_datadir}/%{name}/%{name}-account.upstart
 %dir %attr(0755, swift, swift) %{_localstatedir}/run/swift/account-server
+%{_mandir}/man5/account-server.conf.5*
+%{_mandir}/man1/swift-account-auditor.1*
+%{_mandir}/man1/swift-account-reaper.1*
+%{_mandir}/man1/swift-account-replicator.1*
+%{_mandir}/man1/swift-account-server.1*
 %dir %{_sysconfdir}/swift/account-server
 %{_bindir}/swift-account-auditor
 %{_bindir}/swift-account-reaper
@@ -301,6 +322,12 @@ fi
 %dir %{_initrddir}/%{name}-container
 %{_datadir}/%{name}/%{name}-container.upstart
 %dir %attr(0755, swift, swift) %{_localstatedir}/run/swift/container-server
+%{_mandir}/man5/container-server.conf.5*
+%{_mandir}/man1/swift-container-auditor.1*
+%{_mandir}/man1/swift-container-replicator.1*
+%{_mandir}/man1/swift-container-server.1*
+%{_mandir}/man1/swift-container-sync.1*
+%{_mandir}/man1/swift-container-updater.1*
 %dir %{_sysconfdir}/swift/container-server
 %{_bindir}/swift-container-auditor
 %{_bindir}/swift-container-server
@@ -315,6 +342,12 @@ fi
 %dir %{_initrddir}/%{name}-object
 %{_datadir}/%{name}/%{name}-object.upstart
 %dir %attr(0755, swift, swift) %{_localstatedir}/run/swift/object-server
+%{_mandir}/man5/object-server.conf.5*
+%{_mandir}/man1/swift-object-auditor.1*
+%{_mandir}/man1/swift-object-info.1*
+%{_mandir}/man1/swift-object-replicator.1*
+%{_mandir}/man1/swift-object-server.1*
+%{_mandir}/man1/swift-object-updater.1*
 %dir %{_sysconfdir}/swift/object-server
 %{_bindir}/swift-object-auditor
 %{_bindir}/swift-object-info
@@ -329,6 +362,8 @@ fi
 %dir %{_initrddir}/%{name}-proxy
 %{_datadir}/%{name}/%{name}-proxy.upstart
 %dir %attr(0755, swift, swift) %{_localstatedir}/run/swift/proxy-server
+%{_mandir}/man5/proxy-server.conf.5*
+%{_mandir}/man1/swift-proxy-server.1*
 %dir %{_sysconfdir}/swift/proxy-server
 %{_bindir}/swift-proxy-server
 %{python_sitelib}/swift/proxy
