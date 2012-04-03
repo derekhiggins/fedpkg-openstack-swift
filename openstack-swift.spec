@@ -145,7 +145,7 @@ export PYTHONPATH="$( pwd ):$PYTHONPATH"
 SPHINX_DEBUG=1 sphinx-1.0-build -b html doc/source doc/build/html
 SPHINX_DEBUG=1 sphinx-1.0-build -b man doc/source doc/build/man
 %endif
-# Fix hidden-file-or-dir warning 
+# Fix hidden-file-or-dir warning
 #rm doc/build/html/.buildinfo
 
 %install
@@ -345,7 +345,6 @@ fi
 %{_bindir}/swift-account-server
 %{python_sitelib}/swift/account
 
-
 %files container
 %defattr(-,root,root,-)
 %doc etc/container-server.conf-sample
@@ -426,7 +425,7 @@ fi
 - Update to 1.4.0
 
 * Fri May 20 2011 David Nalley <david@gnsa.us> - 1.3.0-1
-- Update to 1.3.0 
+- Update to 1.3.0
 
 * Tue Feb 08 2011 Fedora Release Engineering <rel-eng@lists.fedoraproject.org> - 1.1.0-2
 - Rebuilt for https://fedoraproject.org/wiki/Fedora_15_Mass_Rebuild
