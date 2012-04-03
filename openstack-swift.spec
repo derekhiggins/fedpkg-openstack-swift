@@ -167,7 +167,12 @@ install -d -m 755 %{buildroot}%{_sysconfdir}/swift/account-server
 install -d -m 755 %{buildroot}%{_sysconfdir}/swift/container-server
 install -d -m 755 %{buildroot}%{_sysconfdir}/swift/object-server
 install -d -m 755 %{buildroot}%{_sysconfdir}/swift/proxy-server
-
+# Install pid directory
+install -d -m 755 %{buildroot}%{_localstatedir}/run/swift
+install -d -m 755 %{buildroot}%{_localstatedir}/run/swift/account-server
+install -d -m 755 %{buildroot}%{_localstatedir}/run/swift/container-server
+install -d -m 755 %{buildroot}%{_localstatedir}/run/swift/object-server
+install -d -m 755 %{buildroot}%{_localstatedir}/run/swift/proxy-server
 # Swift run directories
 mkdir -p %{buildroot}%{_sysconfdir}/tmpfiles.d
 install -p -m 0644 %{SOURCE20} %{buildroot}%{_sysconfdir}/tmpfiles.d/openstack-swift.conf
@@ -306,6 +311,7 @@ fi
 %doc etc/swift.conf-sample
 %config(noreplace) %{_sysconfdir}/tmpfiles.d/openstack-swift.conf
 %dir %{_sysconfdir}/swift
+%dir %attr(0755, swift, root) %{_localstatedir}/run/swift
 %dir %{python_sitelib}/swift
 %{_bindir}/swift
 %{_bindir}/swift-account-audit
@@ -332,6 +338,7 @@ fi
 %dir %{_unitdir}/%{name}-account.service
 %dir %{_unitdir}/%{name}-account@.service
 %dir %{_sysconfdir}/swift/account-server
+%dir %attr(0755, swift, root) %{_localstatedir}/run/swift/account-server
 %{_bindir}/swift-account-auditor
 %{_bindir}/swift-account-reaper
 %{_bindir}/swift-account-replicator
@@ -345,6 +352,7 @@ fi
 %dir %{_unitdir}/%{name}-container.service
 %dir %{_unitdir}/%{name}-container@.service
 %dir %{_sysconfdir}/swift/container-server
+%dir %attr(0755, swift, root) %{_localstatedir}/run/swift/container-server
 %{_bindir}/swift-container-auditor
 %{_bindir}/swift-container-server
 %{_bindir}/swift-container-replicator
@@ -358,6 +366,7 @@ fi
 %dir %{_unitdir}/%{name}-object.service
 %dir %{_unitdir}/%{name}-object@.service
 %dir %{_sysconfdir}/swift/object-server
+%dir %attr(0755, swift, root) %{_localstatedir}/run/swift/object-server
 %{_bindir}/swift-object-auditor
 %{_bindir}/swift-object-info
 %{_bindir}/swift-object-replicator
@@ -370,6 +379,7 @@ fi
 %doc etc/proxy-server.conf-sample
 %dir %{_unitdir}/%{name}-proxy.service
 %dir %{_sysconfdir}/swift/proxy-server
+%dir %attr(0755, swift, root) %{_localstatedir}/run/swift/proxy-server
 %{_bindir}/swift-proxy-server
 %{python_sitelib}/swift/proxy
 
