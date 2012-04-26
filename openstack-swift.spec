@@ -4,7 +4,7 @@
 
 Name:             openstack-swift
 Version:          1.4.8
-Release:          1%{?dist}
+Release:          2%{?dist}
 Summary:          OpenStack Object Storage (swift)
 
 Group:            Development/Languages
@@ -27,11 +27,11 @@ BuildRequires:    dos2unix
 BuildRequires:    python-devel
 BuildRequires:    python-setuptools
 BuildRequires:    python-netifaces
-BuildRequires:    python-paste-deploy
+BuildRequires:    python-paste-deploy1.5
 Requires:         python-configobj
 Requires:         python-eventlet >= 0.9.8
 Requires:         python-greenlet >= 0.3.1
-Requires:         python-paste-deploy
+Requires:         python-paste-deploy1.5
 Requires:         python-simplejson
 Requires:         python-webob1.0
 Requires:         pyxattr
@@ -323,6 +323,9 @@ fi
 %doc LICENSE doc/build/html
 
 %changelog
+* Thu Apr 26 2012 Pádraig Brady <P@draigBrady.com> 1.4.8-2
+- Use parallel installed version of python-paste-deploy
+
 * Thu Mar 22 2012 Alan Pevec <apevec@redhat.com> 1.4.8-1
 - Update to 1.4.8
 
