@@ -27,7 +27,10 @@ BuildRequires:    dos2unix
 BuildRequires:    python-devel
 BuildRequires:    python-setuptools
 BuildRequires:    python-netifaces
+# These are required to build due to the requirements check added
 BuildRequires:    python-paste-deploy1.5
+BuildRequires:    python-webob1.0
+
 Requires:         python-configobj
 Requires:         python-eventlet >= 0.9.8
 Requires:         python-greenlet >= 0.3.1
