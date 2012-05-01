@@ -4,7 +4,7 @@
 
 Name:             openstack-swift
 Version:          1.4.8
-Release:          2%{?dist}
+Release:          3%{?dist}
 Summary:          OpenStack Object Storage (swift)
 
 Group:            Development/Languages
@@ -326,6 +326,9 @@ fi
 %doc LICENSE doc/build/html
 
 %changelog
+* Tue May 01 2012 Pádraig Brady <P@draigBrady.com> 1.4.8-3
+- Start the services later in the boot sequence
+
 * Thu Apr 26 2012 Pádraig Brady <P@draigBrady.com> 1.4.8-2
 - Use parallel installed version of python-paste-deploy
 

@@ -11,7 +11,7 @@
 
 # openstack-swift-container: swift container server
 #
-# chkconfig: - 20 80
+# chkconfig: - 98 02
 # description: Container server for swift.
 
 . /etc/rc.d/init.d/functions

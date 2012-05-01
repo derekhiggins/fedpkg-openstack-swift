@@ -11,7 +11,7 @@
 
 # openstack-swift-account: swift account server
 #
-# chkconfig: - 20 80
+# chkconfig: - 98 02
 # description: Account server for swift.
 
 . /etc/rc.d/init.d/functions

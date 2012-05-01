@@ -11,7 +11,7 @@
 
 # openstack-swift-object: swift object server
 #
-# chkconfig: - 20 80
+# chkconfig: - 98 02
 # description: Object server for swift.
 
 . /etc/rc.d/init.d/functions
