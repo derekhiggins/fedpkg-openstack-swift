@@ -13,9 +13,13 @@ URL:              http://launchpad.net/swift
 Source0:          http://launchpad.net/swift/essex/%{version}/+download/swift-%{version}.tar.gz
 Source1:          %{name}-functions
 Source2:          %{name}-account.init
+Source200:        %{name}-account.upstart
 Source4:          %{name}-container.init
+Source400:        %{name}-container.upstart
 Source5:          %{name}-object.init
+Source500:        %{name}-object.upstart
 Source6:          %{name}-proxy.init
+Source600:        %{name}-proxy.upstart
 Patch0:           openstack-swift-newdeps.patch
 Patch1:           openstack-swift-docmod.patch
 Patch2:           openstack-swift-nonet.patch
@@ -159,6 +163,11 @@ rm -rf %{buildroot}
 %{__python} setup.py install -O1 --skip-build --root %{buildroot}
 # Init helper functions
 install -p -D -m 644 %{SOURCE1} %{buildroot}%{_datarootdir}/%{name}/functions
+# Install upstart jobs examples
+install -p -m 644 %{SOURCE200} %{buildroot}%{_datadir}/%{name}
+install -p -m 644 %{SOURCE400} %{buildroot}%{_datadir}/%{name}
+install -p -m 644 %{SOURCE500} %{buildroot}%{_datadir}/%{name}
+install -p -m 644 %{SOURCE600} %{buildroot}%{_datadir}/%{name}
 # Init scripts
 install -p -D -m 755 %{SOURCE2} %{buildroot}%{_initrddir}/%{name}-account
 install -p -D -m 755 %{SOURCE4} %{buildroot}%{_initrddir}/%{name}-container
@@ -277,6 +286,7 @@ fi
 %defattr(-,root,root,-)
 %doc etc/account-server.conf-sample
 %dir %{_initrddir}/%{name}-account
+%{_datadir}/%{name}/%{name}-account.upstart
 %dir %attr(0755, swift, swift) %{_localstatedir}/run/swift/account-server
 %dir %{_sysconfdir}/swift/account-server
 %{_bindir}/swift-account-auditor
@@ -290,6 +300,7 @@ fi
 %defattr(-,root,root,-)
 %doc etc/container-server.conf-sample
 %dir %{_initrddir}/%{name}-container
+%{_datadir}/%{name}/%{name}-container.upstart
 %dir %attr(0755, swift, swift) %{_localstatedir}/run/swift/container-server
 %dir %{_sysconfdir}/swift/container-server
 %{_bindir}/swift-container-auditor
@@ -303,6 +314,7 @@ fi
 %defattr(-,root,root,-)
 %doc etc/object-server.conf-sample etc/rsyncd.conf-sample
 %dir %{_initrddir}/%{name}-object
+%{_datadir}/%{name}/%{name}-object.upstart
 %dir %attr(0755, swift, swift) %{_localstatedir}/run/swift/object-server
 %dir %{_sysconfdir}/swift/object-server
 %{_bindir}/swift-object-auditor
@@ -316,6 +328,7 @@ fi
 %defattr(-,root,root,-)
 %doc etc/proxy-server.conf-sample
 %dir %{_initrddir}/%{name}-proxy
+%{_datadir}/%{name}/%{name}-proxy.upstart
 %dir %attr(0755, swift, swift) %{_localstatedir}/run/swift/proxy-server
 %dir %{_sysconfdir}/swift/proxy-server
 %{_bindir}/swift-proxy-server
