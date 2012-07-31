@@ -2,15 +2,18 @@
 %{!?python_sitelib: %global python_sitelib %(%{__python} -c "from distutils.sysconfig import get_python_lib; print(get_python_lib())")}
 %endif
 
+%global snaptag 20120806.r1975
+
 Name:             openstack-swift
-Version:          1.5.0
-Release:          2%{?dist}
+Version:          1.6.0
+Release:          1%{?dist}
 Summary:          OpenStack Object Storage (swift)
 
 Group:            Development/Languages
 License:          ASL 2.0
 URL:              http://launchpad.net/swift
-Source0:          http://launchpad.net/swift/essex/%{version}/+download/swift-%{version}.tar.gz
+Source0:          http://launchpad.net/swift/folsom/%{version}/+download/swift-%{version}.tar.gz
+#Source0:          http://tarballs.openstack.org/swift/swift-%{version}~%{snaptag}.tar.gz
 Source2:          %{name}-account.service
 Source21:         %{name}-account@.service
 Source4:          %{name}-container.service
@@ -46,6 +49,8 @@ Requires(pre):    shadow-utils
 Obsoletes:        openstack-swift-auth  <= 1.4.0
 # swift3 was split off in 1.5.0
 Requires:         openstack-swift-plugin-swift3
+# swiftclient was split offf in 1.6.0
+Requires:         python-swiftclient
 
 %description
 OpenStack Object Storage (swift) aggregates commodity servers to work together
@@ -332,7 +337,6 @@ fi
 %dir %{_sysconfdir}/swift
 %dir %attr(0755, swift, root) %{_localstatedir}/run/swift
 %dir %{python_sitelib}/swift
-%{_bindir}/swift
 %{_bindir}/swift-account-audit
 %{_bindir}/swift-bench
 %{_bindir}/swift-drive-audit
@@ -427,6 +431,9 @@ fi
 %doc LICENSE doc/build/html
 
 %changelog
+* Mon Aug 13 2012 Alan Pevec <apevec@redhat.com> 1.6.0-1
+- Update to 1.6.0
+
 * Fri Jul 20 2012 Fedora Release Engineering <rel-eng@lists.fedoraproject.org> - 1.5.0-2
 - Rebuilt for https://fedoraproject.org/wiki/Fedora_18_Mass_Rebuild
 
