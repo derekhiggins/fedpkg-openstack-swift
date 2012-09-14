@@ -6,7 +6,7 @@
 
 Name:             openstack-swift
 Version:          1.7.0
-Release:          1%{?dist}
+Release:          2%{?dist}
 Summary:          OpenStack Object Storage (swift)
 
 Group:            Development/Languages
@@ -16,12 +16,17 @@ Source0:          http://launchpad.net/swift/folsom/%{version}/+download/swift-%
 #Source0:          http://tarballs.openstack.org/swift/swift-%{version}~%{snaptag}.tar.gz
 Source2:          %{name}-account.service
 Source21:         %{name}-account@.service
+Source22:         account-server.conf
 Source4:          %{name}-container.service
 Source41:         %{name}-container@.service
+Source42:         container-server.conf
 Source5:          %{name}-object.service
 Source51:         %{name}-object@.service
+Source52:         object-server.conf
 Source6:          %{name}-proxy.service
+Source61:         proxy-server.conf
 Source20:         %{name}.tmpfs
+Source7:          swift.conf
 BuildRoot:        %{_tmppath}/swift-%{version}-%{release}-root-%(%{__id_u} -n)
 
 BuildArch:        noarch
@@ -173,6 +178,12 @@ install -d -m 755 %{buildroot}%{_sysconfdir}/swift/account-server
 install -d -m 755 %{buildroot}%{_sysconfdir}/swift/container-server
 install -d -m 755 %{buildroot}%{_sysconfdir}/swift/object-server
 install -d -m 755 %{buildroot}%{_sysconfdir}/swift/proxy-server
+# Config files
+install -p -D -m 660 %{SOURCE22} %{buildroot}%{_sysconfdir}/swift/account-server.conf
+install -p -D -m 660 %{SOURCE42} %{buildroot}%{_sysconfdir}/swift/container-server.conf
+install -p -D -m 660 %{SOURCE52} %{buildroot}%{_sysconfdir}/swift/object-server.conf
+install -p -D -m 660 %{SOURCE61} %{buildroot}%{_sysconfdir}/swift/proxy-server.conf
+install -p -D -m 660 %{SOURCE7} %{buildroot}%{_sysconfdir}/swift/swift.conf
 # Install pid directory
 install -d -m 755 %{buildroot}%{_localstatedir}/run/swift
 install -d -m 755 %{buildroot}%{_localstatedir}/run/swift/account-server
@@ -335,6 +346,7 @@ fi
 %{_mandir}/man1/swift-ring-builder.1*
 %config(noreplace) %{_sysconfdir}/tmpfiles.d/openstack-swift.conf
 %dir %{_sysconfdir}/swift
+%config(noreplace) %attr(660, root, swift) %{_sysconfdir}/swift/swift.conf
 %dir %attr(0755, swift, root) %{_localstatedir}/run/swift
 %dir %{python_sitelib}/swift
 %{_bindir}/swift-account-audit
@@ -366,6 +378,7 @@ fi
 %dir %{_unitdir}/%{name}-account.service
 %dir %{_unitdir}/%{name}-account@.service
 %dir %{_sysconfdir}/swift/account-server
+%config(noreplace) %attr(660, root, swift) %{_sysconfdir}/swift/account-server.conf
 %dir %attr(0755, swift, root) %{_localstatedir}/run/swift/account-server
 %{_bindir}/swift-account-auditor
 %{_bindir}/swift-account-reaper
@@ -385,6 +398,7 @@ fi
 %dir %{_unitdir}/%{name}-container.service
 %dir %{_unitdir}/%{name}-container@.service
 %dir %{_sysconfdir}/swift/container-server
+%config(noreplace) %attr(660, root, swift) %{_sysconfdir}/swift/container-server.conf
 %dir %attr(0755, swift, root) %{_localstatedir}/run/swift/container-server
 %{_bindir}/swift-container-auditor
 %{_bindir}/swift-container-server
@@ -407,6 +421,7 @@ fi
 %dir %{_unitdir}/%{name}-object.service
 %dir %{_unitdir}/%{name}-object@.service
 %dir %{_sysconfdir}/swift/object-server
+%config(noreplace) %attr(660, root, swift) %{_sysconfdir}/swift/object-server.conf
 %dir %attr(0755, swift, root) %{_localstatedir}/run/swift/object-server
 %{_bindir}/swift-object-auditor
 %{_bindir}/swift-object-info
@@ -422,6 +437,7 @@ fi
 %{_mandir}/man1/swift-proxy-server.1*
 %dir %{_unitdir}/%{name}-proxy.service
 %dir %{_sysconfdir}/swift/proxy-server
+%config(noreplace) %attr(660, root, swift) %{_sysconfdir}/swift/proxy-server.conf
 %dir %attr(0755, swift, root) %{_localstatedir}/run/swift/proxy-server
 %{_bindir}/swift-proxy-server
 %{python_sitelib}/swift/proxy
@@ -431,7 +447,10 @@ fi
 %doc LICENSE doc/build/html
 
 %changelog
-* Thu Sep 16 2012 Derek Higgins <derekh@redhat.com> 1.7.0-1
+* Fri Sep 14 2012 Derek Higgins <derekh@redhat.com> 1.7.0-2
+- Adding config files
+
+* Thu Sep 13 2012 Derek Higgins <derekh@redhat.com> 1.7.0-1
 - Update to 1.7.0
 
 * Mon Aug 13 2012 Alan Pevec <apevec@redhat.com> 1.6.0-1
