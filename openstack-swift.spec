@@ -2,11 +2,11 @@
 %{!?python_sitelib: %global python_sitelib %(%{__python} -c "from distutils.sysconfig import get_python_lib; print(get_python_lib())")}
 %endif
 
-%global snaptag 20120912.r2034
+%global snaptag 20120918.r2035
 
 Name:             openstack-swift
-Version:          1.7.0
-Release:          2%{?dist}
+Version:          1.7.2
+Release:          1%{?dist}
 Summary:          OpenStack Object Storage (swift)
 
 Group:            Development/Languages
@@ -447,6 +447,9 @@ fi
 %doc LICENSE doc/build/html
 
 %changelog
+* Thu Sep 20 2012 Derek Higgins <derekh@redhat.com> 1.7.2-1
+- Update to 1.7.2
+
 * Fri Sep 14 2012 Derek Higgins <derekh@redhat.com> 1.7.0-2
 - Adding config files
 
