@@ -4,7 +4,7 @@
 
 Name:             openstack-swift
 Version:          1.4.8
-Release:          3%{?dist}
+Release:          5%{?dist}
 Summary:          OpenStack Object Storage (swift)
 
 Group:            Development/Languages
@@ -20,11 +20,18 @@ Source5:          %{name}-object.init
 Source500:        %{name}-object.upstart
 Source6:          %{name}-proxy.init
 Source600:        %{name}-proxy.upstart
-Patch0:           openstack-swift-newdeps.patch
-Patch1:           openstack-swift-docmod.patch
-Patch2:           openstack-swift-nonet.patch
 
 BuildRoot:        %{_tmppath}/swift-%{version}-%{release}-root-%(%{__id_u} -n)
+
+#
+# patches_base=1.4.8
+#
+Patch0001: 0001-Do-not-use-pickle-for-serialization-in-memcache-but-.patch
+Patch0002: 0002-Fix-bug-where-serialization_format-is-ignored.patch
+
+Patch990:           openstack-swift-newdeps.patch
+Patch991:           openstack-swift-docmod.patch
+Patch992:           openstack-swift-nonet.patch
 
 BuildArch:        noarch
 BuildRequires:    dos2unix
@@ -136,11 +143,16 @@ This package contains documentation files for %{name}.
 
 %prep
 %setup -q -n swift-%{version}
-%patch0 -p1 -b .newdeps
-%patch1 -p1 -b .docmod
-%patch2 -p1 -b .nonet
+%patch0001 -p1
+%patch0002 -p1
+
+%patch990 -p1 -b .newdeps
+%patch991 -p1 -b .docmod
+%patch992 -p1 -b .nonet
+
 # Fix wrong-file-end-of-line-encoding warning
 dos2unix LICENSE
+
 
 %build
 %{__python} setup.py build
@@ -373,6 +385,13 @@ fi
 %doc LICENSE doc/build/html
 
 %changelog
+* Thu Sep 27 2012 Derek Higgins <derekh@redhat.com> - 1.4.8-5
+- Do not use pickle for serialization in memcache (CVE-2012-4406)
+- include man pages rhbz#807172
+
+* Mon Jun 25 2012 Alan Pevec <apevec@redhat.com> 1.4.8-4
+- add upstart jobs, alternative to sysv initscripts
+
 * Tue May 01 2012 Pádraig Brady <P@draigBrady.com> 1.4.8-3
 - Start the services later in the boot sequence
 
