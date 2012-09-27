@@ -4,7 +4,7 @@
 
 Name:             openstack-swift
 Version:          1.4.8
-Release:          1%{?dist}
+Release:          2%{?dist}
 Summary:          OpenStack Object Storage (swift)
 
 Group:            Development/Languages
@@ -20,6 +20,9 @@ Source51:         %{name}-object@.service
 Source6:          %{name}-proxy.service
 Source20:         %{name}.tmpfs
 BuildRoot:        %{_tmppath}/swift-%{version}-%{release}-root-%(%{__id_u} -n)
+
+Patch0001: Do-not-use-pickle-for-serialization-in-memcache.patch
+Patch0002: Fix-bug-where-serialization_format-is-ignored.patch
 
 BuildArch:        noarch
 BuildRequires:    dos2unix
@@ -131,6 +134,9 @@ This package contains documentation files for %{name}.
 %setup -q -n swift-%{version}
 # Fix wrong-file-end-of-line-encoding warning
 dos2unix LICENSE
+
+%patch0001 -p1 -z .pickle-memcache
+%patch0002 -p1 -z .format-ignored
 
 %build
 %{__python} setup.py build
@@ -378,6 +384,9 @@ fi
 %doc LICENSE doc/build/html
 
 %changelog
+* Thu Sep 27 2012 Derek Higgins <derekh@redhat.com> - 1.4.8-2
+- Do not use pickle for serialization in memcache 
+
 * Thu Mar 22 2012 Alan Pevec <apevec@redhat.com> 1.4.8-1
 - Update to 1.4.8
 
