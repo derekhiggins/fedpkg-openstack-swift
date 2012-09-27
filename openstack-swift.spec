@@ -2,10 +2,10 @@
 %{!?python_sitelib: %global python_sitelib %(%{__python} -c "from distutils.sysconfig import get_python_lib; print(get_python_lib())")}
 %endif
 
-%global snaptag 20120918.r2035
+%global snaptag 20120925.r2036
 
 Name:             openstack-swift
-Version:          1.7.2
+Version:          1.7.4
 Release:          1%{?dist}
 Summary:          OpenStack Object Storage (swift)
 
@@ -447,6 +447,9 @@ fi
 %doc LICENSE doc/build/html
 
 %changelog
+* Thu Sep 27 2012 Derek Higgins <derekh@redhat.com> - 1.7.4-1
+- Update to 1.7.4
+
 * Thu Sep 20 2012 Derek Higgins <derekh@redhat.com> 1.7.2-1
 - Update to 1.7.2
 
