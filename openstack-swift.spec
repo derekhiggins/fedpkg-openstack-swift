@@ -34,10 +34,9 @@ BuildRoot:        %{_tmppath}/swift-%{version}-%{release}-root-%(%{__id_u} -n)
 #
 # patches_base=1.7.4
 #
+Patch0001: 0001-Use-updated-parallel-install-versions-of-epel-packag.patch
+Patch0002: 0002-Add-fixes-for-building-the-doc-package.patch
 
-Patch990:           openstack-swift-newdeps.patch
-Patch991:           openstack-swift-docmod.patch
-Patch992:           openstack-swift-nonet.patch
 
 BuildArch:        noarch
 BuildRequires:    dos2unix
@@ -154,9 +153,8 @@ This package contains documentation files for %{name}.
 %prep
 %setup -q -n swift-%{version}
 
-%patch990 -p1 -b .newdeps
-%patch991 -p1 -b .docmod
-%patch992 -p1 -b .nonet
+%patch0001 -p1
+%patch0002 -p1
 
 # Fix wrong-file-end-of-line-encoding warning
 dos2unix LICENSE

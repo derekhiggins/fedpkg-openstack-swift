@@ -1,6 +1,23 @@
-diff -ru swift-1.4.4-ORIG/swift/__init__.py swift-1.4.4/swift/__init__.py
---- swift-1.4.4-ORIG/swift/__init__.py	2011-11-24 14:59:50.000000000 +0100
-+++ swift-1.4.4/swift/__init__.py	2012-01-04 00:09:10.122030579 +0100
+From 43e8681d5cbd6c919e379fe25cccc189827e2d60 Mon Sep 17 00:00:00 2001
+From: Alan Pevec <apevec@redhat.com>
+Date: Wed, 4 Jan 2012 00:15:05 +0100
+Subject: [PATCH] Use updated parallel install versions of epel package
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+Use WebOb >= 1.0
+and depend on the EPEL parallel installable versions of the package
+to satisfy those requirements.
+Based on Nova/Glance EPEL patch by Pádraig Brady <P@draigBrady.com>
+---
+ swift/__init__.py | 29 +++++++++++++++++++++++++++++
+ 1 file changed, 29 insertions(+)
+
+diff --git a/swift/__init__.py b/swift/__init__.py
+index 9065801..9600d1e 100644
+--- a/swift/__init__.py
++++ b/swift/__init__.py
 @@ -1,3 +1,32 @@
 +import sys
 +import pkg_resources
