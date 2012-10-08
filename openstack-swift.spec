@@ -2,32 +2,38 @@
 %{!?python_sitelib: %global python_sitelib %(%{__python} -c "from distutils.sysconfig import get_python_lib; print(get_python_lib())")}
 %endif
 
+%global snaptag 20120925.r2036
+
 Name:             openstack-swift
-Version:          1.4.8
-Release:          5%{?dist}
+Version:          1.7.4
+Release:          1%{?dist}
 Summary:          OpenStack Object Storage (swift)
 
 Group:            Development/Languages
 License:          ASL 2.0
 URL:              http://launchpad.net/swift
-Source0:          http://launchpad.net/swift/essex/%{version}/+download/swift-%{version}.tar.gz
+Source0:          http://launchpad.net/swift/folsom/%{version}/+download/swift-%{version}.tar.gz
+#Source0:          http://tarballs.openstack.org/swift/swift-%{version}~%{snaptag}.tar.gz
 Source1:          %{name}-functions
 Source2:          %{name}-account.init
+Source22:         account-server.conf
 Source200:        %{name}-account.upstart
 Source4:          %{name}-container.init
+Source42:         container-server.conf
 Source400:        %{name}-container.upstart
 Source5:          %{name}-object.init
+Source52:         object-server.conf
 Source500:        %{name}-object.upstart
 Source6:          %{name}-proxy.init
+Source61:         proxy-server.conf
 Source600:        %{name}-proxy.upstart
+Source7:          swift.conf
 
 BuildRoot:        %{_tmppath}/swift-%{version}-%{release}-root-%(%{__id_u} -n)
 
 #
-# patches_base=1.4.8
+# patches_base=1.7.4
 #
-Patch0001: 0001-Do-not-use-pickle-for-serialization-in-memcache-but-.patch
-Patch0002: 0002-Fix-bug-where-serialization_format-is-ignored.patch
 
 Patch990:           openstack-swift-newdeps.patch
 Patch991:           openstack-swift-docmod.patch
@@ -58,6 +64,10 @@ Requires(postun): initscripts
 Requires(preun):  chkconfig
 Requires(pre):    shadow-utils
 Obsoletes:        openstack-swift-auth  <= 1.4.0
+# swift3 was split off in 1.5.0
+Requires:         openstack-swift-plugin-swift3
+# swiftclient was split offf in 1.6.0
+Requires:         python-swiftclient
 
 %description
 OpenStack Object Storage (swift) aggregates commodity servers to work together
@@ -143,8 +153,6 @@ This package contains documentation files for %{name}.
 
 %prep
 %setup -q -n swift-%{version}
-%patch0001 -p1
-%patch0002 -p1
 
 %patch990 -p1 -b .newdeps
 %patch991 -p1 -b .docmod
@@ -192,6 +200,12 @@ install -d -m 755 %{buildroot}%{_sysconfdir}/swift/account-server
 install -d -m 755 %{buildroot}%{_sysconfdir}/swift/container-server
 install -d -m 755 %{buildroot}%{_sysconfdir}/swift/object-server
 install -d -m 755 %{buildroot}%{_sysconfdir}/swift/proxy-server
+# Config files
+install -p -D -m 660 %{SOURCE22} %{buildroot}%{_sysconfdir}/swift/account-server.conf
+install -p -D -m 660 %{SOURCE42} %{buildroot}%{_sysconfdir}/swift/container-server.conf
+install -p -D -m 660 %{SOURCE52} %{buildroot}%{_sysconfdir}/swift/object-server.conf
+install -p -D -m 660 %{SOURCE61} %{buildroot}%{_sysconfdir}/swift/proxy-server.conf
+install -p -D -m 660 %{SOURCE7} %{buildroot}%{_sysconfdir}/swift/swift.conf
 # Install pid directory
 install -d -m 755 %{buildroot}%{_localstatedir}/run/swift
 install -d -m 755 %{buildroot}%{_localstatedir}/run/swift/account-server
@@ -285,13 +299,16 @@ fi
 %{_mandir}/man1/swift.1*
 %{_mandir}/man1/swift-get-nodes.1*
 %{_mandir}/man1/swift-init.1*
+%{_mandir}/man1/swift-orphans.1*
 %{_mandir}/man1/swift-recon.1*
 %{_mandir}/man1/swift-ring-builder.1*
+%config(noreplace) %{_sysconfdir}/tmpfiles.d/openstack-swift.conf
 %dir %{_datarootdir}/%{name}/functions
 %dir %attr(0755, swift, swift) %{_localstatedir}/run/swift
 %dir %{_sysconfdir}/swift
+%config(noreplace) %attr(660, root, swift) %{_sysconfdir}/swift/swift.conf
+%dir %attr(0755, swift, root) %{_localstatedir}/run/swift
 %dir %{python_sitelib}/swift
-%{_bindir}/swift
 %{_bindir}/swift-account-audit
 %{_bindir}/swift-bench
 %{_bindir}/swift-drive-audit
@@ -322,6 +339,8 @@ fi
 %{_mandir}/man1/swift-account-replicator.1*
 %{_mandir}/man1/swift-account-server.1*
 %dir %{_sysconfdir}/swift/account-server
+%config(noreplace) %attr(660, root, swift) %{_sysconfdir}/swift/account-server.conf
+%dir %attr(0755, swift, root) %{_localstatedir}/run/swift/account-server
 %{_bindir}/swift-account-auditor
 %{_bindir}/swift-account-reaper
 %{_bindir}/swift-account-replicator
@@ -341,6 +360,8 @@ fi
 %{_mandir}/man1/swift-container-sync.1*
 %{_mandir}/man1/swift-container-updater.1*
 %dir %{_sysconfdir}/swift/container-server
+%config(noreplace) %attr(660, root, swift) %{_sysconfdir}/swift/container-server.conf
+%dir %attr(0755, swift, root) %{_localstatedir}/run/swift/container-server
 %{_bindir}/swift-container-auditor
 %{_bindir}/swift-container-server
 %{_bindir}/swift-container-replicator
@@ -355,12 +376,16 @@ fi
 %{_datadir}/%{name}/%{name}-object.upstart
 %dir %attr(0755, swift, swift) %{_localstatedir}/run/swift/object-server
 %{_mandir}/man5/object-server.conf.5*
+%{_mandir}/man5/object-expirer.conf.5*
 %{_mandir}/man1/swift-object-auditor.1*
+%{_mandir}/man1/swift-object-expirer.1*
 %{_mandir}/man1/swift-object-info.1*
 %{_mandir}/man1/swift-object-replicator.1*
 %{_mandir}/man1/swift-object-server.1*
 %{_mandir}/man1/swift-object-updater.1*
 %dir %{_sysconfdir}/swift/object-server
+%config(noreplace) %attr(660, root, swift) %{_sysconfdir}/swift/object-server.conf
+%dir %attr(0755, swift, root) %{_localstatedir}/run/swift/object-server
 %{_bindir}/swift-object-auditor
 %{_bindir}/swift-object-info
 %{_bindir}/swift-object-replicator
@@ -377,6 +402,8 @@ fi
 %{_mandir}/man5/proxy-server.conf.5*
 %{_mandir}/man1/swift-proxy-server.1*
 %dir %{_sysconfdir}/swift/proxy-server
+%config(noreplace) %attr(660, root, swift) %{_sysconfdir}/swift/proxy-server.conf
+%dir %attr(0755, swift, root) %{_localstatedir}/run/swift/proxy-server
 %{_bindir}/swift-proxy-server
 %{python_sitelib}/swift/proxy
 
@@ -385,6 +412,9 @@ fi
 %doc LICENSE doc/build/html
 
 %changelog
+* Thu Sep 27 2012 Derek Higgins <derekh@redhat.com> - 1.7.4-1
+- Update to 1.7.4
+
 * Thu Sep 27 2012 Derek Higgins <derekh@redhat.com> - 1.4.8-5
 - Do not use pickle for serialization in memcache (CVE-2012-4406)
 - include man pages rhbz#807172
