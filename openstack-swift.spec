@@ -6,7 +6,7 @@
 
 Name:             openstack-swift
 Version:          1.7.4
-Release:          1%{?dist}
+Release:          2%{?dist}
 Summary:          OpenStack Object Storage (swift)
 
 Group:            Development/Languages
@@ -141,6 +141,7 @@ BuildRequires:    python-sphinx >= 1.0
 # Required for generating docs
 BuildRequires:    python-eventlet
 BuildRequires:    python-simplejson
+BuildRequires:    python-swiftclient
 BuildRequires:    python-webob1.0
 BuildRequires:    pyxattr
 
@@ -300,7 +301,6 @@ fi
 %{_mandir}/man1/swift-orphans.1*
 %{_mandir}/man1/swift-recon.1*
 %{_mandir}/man1/swift-ring-builder.1*
-%config(noreplace) %{_sysconfdir}/tmpfiles.d/openstack-swift.conf
 %dir %{_datarootdir}/%{name}/functions
 %dir %attr(0755, swift, swift) %{_localstatedir}/run/swift
 %dir %{_sysconfdir}/swift
@@ -410,6 +410,10 @@ fi
 %doc LICENSE doc/build/html
 
 %changelog
+* Tue Oct 09 2012 Derek Higgins <derekh@redhat.com> - 1.7.4-2
+- removing reference to tmpfiles.d/openstack-swift.conf in packaging
+- adding python-swiftclient as a BuildRequires
+
 * Thu Sep 27 2012 Derek Higgins <derekh@redhat.com> - 1.7.4-1
 - Update to 1.7.4
 
